@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -23,17 +24,20 @@ class LoginController extends AbstractController
         $this->repository = $entityManager->getRepository(User::class);
     }
 
-    #[Route('/register', name: 'user_post', methods: 'POST')]
+    #[Route('/register', name: 'app_register_post', methods: ['POST', 'PUT'])]
     public function create(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
 
         $user = new User();
-        $user->setName("Mike");
-        $user->setEmail("Mike");
-        $user->setIdUser("Mike");
+        $user->setFirstName($request->get('firstname'));
+        $user->setName($request->get('firstname'));
+        $user->setLastName($request->get('lastname'));
+        $user->setEmail($request->get('email'));
+        $user->setIdUser($request->get('email'));
+        $user->setDateBirth(DateTime::createFromFormat('Y-m-d', $request->get('dateBirth')));
         $user->setCreateAt(new DateTimeImmutable());
         $user->setUpdateAt(new DateTimeImmutable());
-        $password = "Mike";
+        $password = $request->get('password');
 
         $hash = $passwordHash->hashPassword($user, $password); // Hash le password envoyez par l'utilisateur
         $user->setPassword($hash);
@@ -41,10 +45,9 @@ class LoginController extends AbstractController
         $this->entityManager->flush();
 
         return $this->json([
-            'isNotGoodPassword' => ($passwordHash->isPasswordValid($user, 'Zoubida') ),
-            'isGoodPassword' => ($passwordHash->isPasswordValid($user, $password) ),
+            'error' => (false),
+            'message' => "l'utilisateur a bien été créé avec succès",
             'user' => $user->serializer(),
-            'path' => 'src/Controller/UserController.php',
         ]);
     }
         
