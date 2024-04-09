@@ -22,7 +22,8 @@ class UserController extends AbstractController
     private $tokenVerifier;
     private $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager, TokenVerifierService $tokenVerifier){
+    public function __construct(EntityManagerInterface $entityManager, TokenVerifierService $tokenVerifier)
+    {
         $this->entityManager = $entityManager;
         $this->tokenVerifier = $tokenVerifier;
         $this->repository = $entityManager->getRepository(User::class);
@@ -46,8 +47,8 @@ class UserController extends AbstractController
         $this->entityManager->flush();
 
         return $this->json([
-            'isNotGoodPassword' => ($passwordHash->isPasswordValid($user, 'Zoubida') ),
-            'isGoodPassword' => ($passwordHash->isPasswordValid($user, $password) ),
+            'isNotGoodPassword' => ($passwordHash->isPasswordValid($user, 'Zoubida')),
+            'isGoodPassword' => ($passwordHash->isPasswordValid($user, $password)),
             'user' => $user->serializer(),
             'path' => 'src/Controller/UserController.php',
         ]);
@@ -58,14 +59,14 @@ class UserController extends AbstractController
     {
 
         $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if(gettype($dataMiddellware) == 'boolean'){
+        if (gettype($dataMiddellware) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware));
         }
         $user = $dataMiddellware;
 
         dd($user);
         $phone = "0668000000";
-        if(preg_match("/^[0-9]{10}$/", $phone)) {
+        if (preg_match("/^[0-9]{10}$/", $phone)) {
             $old = $user->getTel();
             $user->setTel($phone);
             $this->entityManager->flush();
@@ -80,7 +81,7 @@ class UserController extends AbstractController
     #[Route('/user', name: 'user_delete', methods: 'DELETE')]
     public function delete(): JsonResponse
     {
-        $this->entityManager->remove($this->repository->findOneBy(["id"=>1]));
+        $this->entityManager->remove($this->repository->findOneBy(["id" => 1]));
         $this->entityManager->flush();
         return $this->json([
             'message' => 'Welcome to your new controller!',

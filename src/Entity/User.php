@@ -53,6 +53,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?int $sexe = null;
 
+    #[ORM\Column]
+    private ?int $disable = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -236,6 +239,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setSexe(int $sexe): static
     {
         $this->sexe = $sexe;
+
+        return $this;
+    }
+
+    public function getDisable(): ?int
+    {
+        return $this->disable;
+    }
+
+    public function setDisable(int $disable): static
+    {
+        $this->disable = $disable;
 
         return $this;
     }

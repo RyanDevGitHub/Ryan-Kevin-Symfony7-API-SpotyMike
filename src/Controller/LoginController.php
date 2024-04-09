@@ -110,9 +110,6 @@ class LoginController extends AbstractController
             ]);
         }
 
-
-
-
         $user->setFirstName($request->get('firstname'));
         $user->setName($request->get('firstname'));
         $user->setLastName($request->get('lastname'));
@@ -121,7 +118,6 @@ class LoginController extends AbstractController
         $user->setDateBirth(new DateTime($request->get('dateBirth')));
         $user->setCreateAt(new DateTimeImmutable());
         $user->setUpdateAt(new DateTimeImmutable());
-
 
         $password = $request->get('password');
         $hash = $passwordHash->hashPassword($user, $password); // Hash le password envoyez par l'utilisateur
@@ -132,6 +128,7 @@ class LoginController extends AbstractController
         if (!is_null($request->get('sexe'))) {
             $user->setSexe($request->get('sexe'));
         }
+        $user->setDisable(0);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
@@ -158,5 +155,33 @@ class LoginController extends AbstractController
             'message' => 'Welcome to MikeLand',
             'path' => 'src/Controller/LoginController.php',
         ]);
+    }
+
+    #[Route('/account-deactivation', name: 'app_disabled_account', methods: 'DELETE')]
+    public function disabledAccount(Request $request, JWTTokenManagerInterface $JWTManager, TokenVerifierService $tokenVerifierService): JsonResponse
+    {
+        $token = $tokenVerifierService->checkToken($request);
+        if (!$token) {
+            return $this->json([
+                'error' => (true),
+                'message' => "Authentification requise. Vous devez être connecté pour effectuer cette action.",
+
+            ]);
+        } else {
+            if ($this->userUtils->IsDisableAccount($token)) {
+                return $this->json([
+                    'error' => (true),
+                    'message' => "Le compte est déjà désactivé.",
+                ]);
+            } else {
+                $token->setDisable(1);
+                $this->entityManager->persist($token);
+                $this->entityManager->flush();
+                return $this->json([
+                    'success' => (true),
+                    'message' => "Votre compte a été désactivé avec succès.Nous sommes désolés de vous voir partir.",
+                ]);
+            }
+        }
     }
 }

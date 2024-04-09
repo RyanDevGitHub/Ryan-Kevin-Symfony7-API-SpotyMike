@@ -124,4 +124,19 @@ class UserUtils
         $users = $this->userRepository->findByEmail($email);
         return count($users) == 0;
     }
+
+    function IsDisableAccount($user)
+    {
+        /**
+         * Vérifie si l'email n'est est disponible (0 ou 1).
+         *
+         * @param User $user à vérifier.
+         * @return bool True si user account est désactiver, False sinon.
+         */
+
+        if ($user->disable == 1) {
+            return true;
+        }
+        return false;
+    }
 }
