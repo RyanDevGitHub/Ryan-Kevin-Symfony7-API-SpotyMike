@@ -4,6 +4,7 @@
 
 namespace App\Service;
 
+use DateTime;
 use App\Entity\User;
 use Namshi\JOSE\JWT;
 use App\Repository\UserRepository;
@@ -66,20 +67,19 @@ class UserUtils
         }
     }
 
-    function isValidAge($age)
+    function isValidAge($dateString)
     {
-        /**
-         * Vérifie si l'âge est d'au moins 12 ans.
-         *
-         * @param int $age L'âge à vérifier.
-         * @return bool True si l'âge est d'au moins 12 ans, False sinon.
-         */
-        if ($age >= 12) {
+        // Convertir la date en un objet DateTime
+        $date = DateTime::createFromFormat('d/m/Y', $dateString);
+
+        // Vérifier si la date est valide et si elle est d'au moins 12 ans
+        if ($date && $date->diff(new DateTime())->y >= 12) {
             return true;
         } else {
             return false;
         }
     }
+
 
     function isValidPhoneNumber($phoneNumber)
     {
@@ -102,10 +102,10 @@ class UserUtils
         /**
          * Vérifie si le champ sexe est valide (0 ou 1).
          *
-         * @param int $sex Le champ sexe à vérifier.
+         * @param string $sex Le champ sexe à vérifier.
          * @return bool True si le champ est valide, False sinon.
          */
-        if ($sex === 0 || $sex === 1) {
+        if ($sex === '0' || $sex === '1') {
             return true;
         } else {
             return false;
