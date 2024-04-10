@@ -134,7 +134,7 @@ class UserUtils
          * @return bool True si user account est désactiver, False sinon.
          */
 
-        if ($user->disable == 1) {
+        if ($user->getDisable() == 1) {
             return true;
         }
         return false;

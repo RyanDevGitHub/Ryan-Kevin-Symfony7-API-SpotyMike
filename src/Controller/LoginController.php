@@ -37,31 +37,31 @@ class LoginController extends AbstractController
         if (empty($request->get('firstname'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.1",
+                'message' => "Des champs obligatoires sont manquants.",
             ]);
         }
         if (empty($request->get('lastname'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.2",
+                'message' => "Des champs obligatoires sont manquants.",
             ]);
         }
         if (empty($request->get('email'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.3",
+                'message' => "Des champs obligatoires sont manquants.",
             ]);
         }
         if (empty($request->get('dateBirth'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.4",
+                'message' => "Des champs obligatoires sont manquants.",
             ]);
         }
         if (empty($request->get('password'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.5",
+                'message' => "Des champs obligatoires sont manquants.",
             ]);
         }
 
@@ -141,19 +141,57 @@ class LoginController extends AbstractController
 
     // use Symfony\Component\HttpFoundation\Request;
     #[Route('/login', name: 'app_login_post', methods: ['POST', 'PUT'])]
-    public function login(Request $request, JWTTokenManagerInterface $JWTManager): JsonResponse
+    public function login(Request $request, JWTTokenManagerInterface $JWTManager, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
 
-        $user = $this->repository->findOneBy(["email" => "mike.sylvestre@lyknowledge.io"]);
+        if (empty($request->get('password')) || empty($request->get('email'))) {
+            return $this->json([
+                'error' => (true),
+                'message' => "Email/password manquants.",
+            ]);
+        }
+        if (!$this->userUtils->isValidEmail($request->get('email'))) {
+            return $this->json([
+                'error' => (true),
+                'message' => "Le format de l'email est invalide.",
+            ]);
+        }
+
+        if (!$this->userUtils->isValidPassword($request->get('password'))) {
+            return $this->json([
+                'error' => (true),
+                'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
+            ]);
+        }
+        /** @var User|null $user */
+        $user = $this->repository->findOneBy(["email" => $request->get('email')]);
+        if (!$user) {
+            return $this->json([
+                'error' => (true),
+                'message' => "Aucun compte existe avec cette adresse email.",
+            ]);
+        }
+        if (!$passwordHash->isPasswordValid($user, $request->get('password'))) {
+            return $this->json([
+                'error' => (true),
+                'message' => "  Mot de passe incorrecte.",
+            ]);
+        }
+        if ($this->userUtils->IsDisableAccount($user)) {
+            return $this->json([
+                'error' => (true),
+                'message' => "Le compte n'est plus actif ou est suspendu.",
+            ]);
+        }
 
         $parameters = json_decode($request->getContent(), true);
 
 
         return $this->json([
+            'error' => false,
+            'message' => "L'utilisateur a été authentifié succès",
+            'user' => $user->serializer(),
             'token' => $JWTManager->create($user),
-            'data' => $request->getContent(),
-            'message' => 'Welcome to MikeLand',
-            'path' => 'src/Controller/LoginController.php',
         ]);
     }
 
