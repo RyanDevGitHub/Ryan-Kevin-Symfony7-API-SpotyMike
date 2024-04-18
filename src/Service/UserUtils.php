@@ -139,4 +139,60 @@ class UserUtils
         }
         return false;
     }
+
+    function logFailedLoginAttempt($user)
+    {
+        /**
+         * Vérifie si l'email n'est est disponible (0 ou 1).
+         *
+         * @param string $user email à vérifier.
+         * @return bool|int false si user peut tenter de ce connecter, timeless sinon.
+         */
+        global $dataDir;
+        $failedLoginFile = $dataDir . $user . '.txt';
+    
+        // Vérifie si le fichier existe déjà
+        if (file_exists($failedLoginFile)) {
+            // Le fichier existe, lire les données
+            $data = file_get_contents($failedLoginFile);
+            list($failedAttempts, $firstAttemptTime) = explode('|', $data);
+    
+            // Vérifie si le premier essai était il y a plus de 5 minutes
+            $currentTime = time();
+            if ($currentTime - $firstAttemptTime > 300) {
+                // Réinitialiser les tentatives si le premier essai était il y a plus de 5 minutes
+                $failedAttempts = 1;
+                $firstAttemptTime = $currentTime;
+            } else {
+                // Vérifier si le nombre de tentatives dépasse le seuil
+                if ($failedAttempts >= 5) {
+                    // Vérifie si le délai entre la première et la dernière tentative est inférieur à 5 minutes
+                    if ($currentTime - $firstAttemptTime <= 60) {
+                        
+                        // L'utilisateur a dépassé le seuil et le délai, donc on l'empêche de se connecter pendant 5 minutes
+                        return 60 - (time() - $firstAttemptTime) ;
+                    } else {
+                        // Réinitialiser les tentatives si le délai entre la première et la dernière tentative est supérieur à 5 minutes
+                        $failedAttempts = 1;
+                        $firstAttemptTime = $currentTime;
+                    }
+                } else {
+                    // Incrémenter les tentatives infructueuses
+                    $failedAttempts++;
+                }
+            }
+        } else {
+            // Le fichier n'existe pas, c'est la première tentative
+            $failedAttempts = 1;
+            $firstAttemptTime = time();
+        }
+    
+        // Écrire les données dans le fichier
+        $data = "$failedAttempts|$firstAttemptTime";
+        file_put_contents($failedLoginFile, $data);
+        return false;
+       
+    }
+
+
 }

@@ -171,11 +171,19 @@ class LoginController extends AbstractController
                 'message' => "Aucun compte existe avec cette adresse email.",
             ]);
         }
-        if (!$passwordHash->isPasswordValid($user, $request->get('password'))) {
-            return $this->json([
-                'error' => (true),
-                'message' => "  Mot de passe incorrecte.",
-            ]);
+        if(!$passwordHash->isPasswordValid($user,$request->get('password'))){
+            $time = $this->userUtils->logFailedLoginAttempt($request->get('email'));
+            if ($time == false) {
+                return $this->json([
+                    'error' => (true),
+                    'message' => "Mot de passe incorrecte.",
+                ]);
+            }else{
+                return $this->json([
+                    'error' => (true),
+                    'message' => "Trop de tentative de connexion (5 max).Veuillez réessayer ultèrieurement - $time min d'attente.",
+                ]);
+            }
         }
         if ($this->userUtils->IsDisableAccount($user)) {
             return $this->json([
