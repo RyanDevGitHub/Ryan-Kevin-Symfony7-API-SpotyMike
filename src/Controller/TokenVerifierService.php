@@ -27,15 +27,14 @@ class TokenVerifierService
      */
     public function checkToken(Request $request)
     {
-
-        if (!$request->headers->has('Authorization')) {
+        
+        if ($request->headers->has('Authorization')) {
             $data =  explode(" ", $request->headers->get('Authorization'));
             if (count($data) == 2) {
                 $token = $data[1];
                 try {
                     $dataToken = $this->jwtProvider->load($token);
                     if ($dataToken->isVerified($token)) {
-                        dd($dataToken->getPayload());
                         $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
                         return ($user) ? $user : false;
                     }

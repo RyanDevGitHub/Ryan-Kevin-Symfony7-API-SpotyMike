@@ -199,6 +199,7 @@ class LoginController extends AbstractController
     public function disabledAccount(Request $request, JWTTokenManagerInterface $JWTManager, TokenVerifierService $tokenVerifierService): JsonResponse
     {
         $token = $tokenVerifierService->checkToken($request);
+        
         if (!$token) {
             return $this->json([
                 'error' => (true),
