@@ -34,8 +34,8 @@ class TokenVerifierService
                 $token = $data[1];
                 try {
                     $dataToken = $this->jwtProvider->load($token);
-                    if ($dataToken->isVerified($token)) {
-                        $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
+                    if ($dataToken->isVerified()) {
+                        $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
                         return ($user) ? $user : false;
                     }
                 } catch (\Throwable $th) {
@@ -54,5 +54,25 @@ class TokenVerifierService
             'error' => true,
             'message' => ($nullToken) ? "Authentification requise. Vous devez être connecté pour effectuer cette action." : "Vous n'êtes pas autorisé à accéder aux informations de cet artiste.",
         ];
+    }
+
+    public function isExpiredToken ($request){
+        if ($request->headers->has('Authorization')) {
+            $data =  explode(" ", $request->headers->get('Authorization'));
+            if (count($data) == 2) {
+                $token = $data[1];
+                try {
+                    $dataToken = $this->jwtProvider->load($token);
+                    if (!$dataToken->isExpired($token)) {
+                        return false;
+                    }
+                } catch (\Throwable $th) {
+                    return false;
+                }
+            }
+        } else {
+            return true;
+        }
+        return true;
     }
 }

@@ -223,4 +223,5 @@ function isTelAvailable($tel)
     return empty($telExist); // Si le tableau est vide, le numéro de téléphone est disponible
 }
 
+
 }
