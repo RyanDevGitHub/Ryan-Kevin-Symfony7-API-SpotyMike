@@ -8,7 +8,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
-class TokenVerifierService {
+class TokenVerifierService
+{
 
     private $jwtManager;
     private $jwtProvider;
@@ -20,19 +21,20 @@ class TokenVerifierService {
         $this->jwtProvider = $jwtProvider;
         $this->userRepository = $userRepository;
     }
-    
+
     /**
      * @return User | Boolean - false if token is not avalaible | null is not send
      */
-    public function checkToken (Request $request){
-
-        if( $request->headers->has('Authorization')){
+    public function checkToken(Request $request)
+    {
+        
+        if ($request->headers->has('Authorization')) {
             $data =  explode(" ", $request->headers->get('Authorization'));
-            if(count($data) == 2){
+            if (count($data) == 2) {
                 $token = $data[1];
                 try {
                     $dataToken = $this->jwtProvider->load($token);
-                    if($dataToken->isVerified($token)){
+                    if ($dataToken->isVerified($token)) {
                         $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
                         return ($user) ? $user : false;
                     }
@@ -40,18 +42,17 @@ class TokenVerifierService {
                     return false;
                 }
             }
-        }else{
-            return true;
+        } else {
+            return false;
         }
         return false;
     }
 
-    public function sendJsonErrorToken($nullToken): Array
+    public function sendJsonErrorToken($nullToken): array
     {
         return [
             'error' => true,
-            'message' => ($nullToken) ?"Authentification requise. Vous devez être connecté pour effectuer cette action." : "Vous n'êtes pas autorisé à accéder aux informations de cet artiste.",
+            'message' => ($nullToken) ? "Authentification requise. Vous devez être connecté pour effectuer cette action." : "Vous n'êtes pas autorisé à accéder aux informations de cet artiste.",
         ];
     }
-
 }

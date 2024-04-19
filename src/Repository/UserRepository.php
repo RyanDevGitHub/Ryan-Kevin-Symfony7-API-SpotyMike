@@ -22,10 +22,25 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    // public function upgradePassword($user, $newHashedPassword){
-    //     $user->setPassword($newHashedPassword);
-    //     $this->getEntityManager()->flush();
-    // }
+    public function upgradePassword($user, $newHashedPassword)
+    {
+        $user->setPassword($newHashedPassword);
+        $this->getEntityManager()->flush();
+    }
+
+
+    /**
+     * @return User[] Returns an array of User objects
+     */
+    public function findByEmail($email): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.email = :val')
+            ->setParameter('val', $email)
+            ->orderBy('u.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
     //    /**
     //     * @return User[] Returns an array of User objects

@@ -17,13 +17,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     // #[ORM\Id]
-    #[ORM\Column(length: 90, unique:true)]
+    #[ORM\Column(length: 90, unique: true)]
     private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 80, unique:true)]
+    #[ORM\Column(length: 80, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 90)]
@@ -50,8 +50,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $dateBirth = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $sexe = null;
+
+    #[ORM\Column]
+    private ?int $disable = null;
 
     public function getId(): ?int
     {
@@ -164,16 +167,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getRoles(): array{
+    public function getRoles(): array
+    {
 
         return ['PUBLIC_ACCESS'];
     }
 
-    public function eraseCredentials(): void{
-
+    public function eraseCredentials(): void
+    {
     }
 
-    public function getUserIdentifier(): string{
+    public function getUserIdentifier(): string
+    {
         return $this->getEmail();
     }
 
@@ -234,6 +239,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setSexe(int $sexe): static
     {
         $this->sexe = $sexe;
+
+        return $this;
+    }
+
+    public function getDisable(): ?int
+    {
+        return $this->disable;
+    }
+
+    public function setDisable(int $disable): static
+    {
+        $this->disable = $disable;
 
         return $this;
     }
