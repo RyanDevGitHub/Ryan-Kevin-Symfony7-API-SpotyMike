@@ -41,6 +41,15 @@ class UserRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    public function findByTel($tel): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.tel = :val')
+            ->setParameter('val', $tel)
+            ->orderBy('u.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
     //    /**
     //     * @return User[] Returns an array of User objects

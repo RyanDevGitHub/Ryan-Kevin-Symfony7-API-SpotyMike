@@ -194,5 +194,33 @@ class UserUtils
        
     }
 
+    function isValidName($name)
+{
+    /**
+     * Vérifie si un nom est valide.
+     *
+     * @param string $name Le nom à vérifier.
+     * @return bool True si le nom est valide, False sinon.
+     */
+    $length = mb_strlen($name, 'utf8');
+    if ($length >= 1 && $length <= 60) {
+        return true;
+    } else {
+        return false;
+    }
+}
+function isTelAvailable($tel)
+{
+    /**
+     * Vérifie si le numéro de téléphone est disponible.
+     *
+     * @param string $tel Le numéro de téléphone à vérifier.
+     * @return bool True si le numéro de téléphone est disponible, False sinon.
+     */
+
+    // Supposons que $this->telRepository->findByTel($tel) récupère les numéros de téléphone depuis la base de données
+    $telExist = $this->userRepository->findByTel($tel);
+    return empty($telExist); // Si le tableau est vide, le numéro de téléphone est disponible
+}
 
 }
