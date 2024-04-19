@@ -88,17 +88,38 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/user', name: 'user_get', methods: 'GET')]
-    public function read(): JsonResponse
+    #[Route('/user', name: 'user_get', methods: 'POST')]
+    public function updateUser(Request $request): JsonResponse
     {
 
+        // Récupérer le beer token depuis la requête et le verifie
+        $user = $this->tokenVerifier->checkToken($request);
 
-        $serializer = new Serializer([new ObjectNormalizer()]);
-        // $jsonContent = $serializer->serialize($person, 'json');
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/UserController.php',
-        ]);
+        // Trouver l'utilisateur avec la même adresse e-mail que dans le beer token
+        if($user){
+            $user->setFirstName($request->get('firstname'));
+            $user->setFirstName($request->get('lastname'));
+            $user->setFirstName($request->get('tel'));
+            $user->setFirstName($request->get('sexe'));
+        }else{
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Authentification requise.Vous devez etre connecté pour effectuer cette action.']);
+        }
+
+        if (!$utilisateur) {
+            throw $this->createNotFoundException('Aucun utilisateur trouvé pour cette adresse e-mail.');
+        }
+
+      
+        $utilisateur->setNom($nouveauNom);
+
+        // Enregistrer l'utilisateur modifié dans la base de données
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($utilisateur);
+        $entityManager->flush();
+
+        return new JsonResponse('Nom utilisateur changé avec succès !');
     }
 
     #[Route('/user/all', name: 'user_get_all', methods: 'GET')]
