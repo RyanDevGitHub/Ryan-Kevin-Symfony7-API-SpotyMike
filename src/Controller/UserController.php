@@ -236,9 +236,8 @@ class UserController extends AbstractController
                     ]);  
                 }
                
-                if($user = $this->tokenVerifier->checkToken($request)){  
-                    if($this->tokenVerifier->isExpiredToken($request)){
-                        dd('test');    
+                if($user = $this->tokenVerifier->checkStringToken($token)){  
+                    if($this->tokenVerifier->isExpiredStringToken($token)){   
                         return $this->json([
                             'error' => (true),
                             'message' => "Votre token de reinitialisation de mot de passe à expirer.Veullez refaire une demande de reinitialisation de mot de passe.",

@@ -48,6 +48,24 @@ class TokenVerifierService
         return false;
     }
 
+
+    public function checkStringToken(string $token )
+    { 
+        try {
+            $dataToken = $this->jwtProvider->load($token);
+            if ($dataToken->isVerified()) {
+                $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
+                return ($user) ? $user : false;
+            }
+        } catch (\Throwable $th) {
+            return false;
+        }
+    }
+
+
+
+
+
     public function sendJsonErrorToken($nullToken): array
     {
         return [
@@ -74,5 +92,16 @@ class TokenVerifierService
             return true;
         }
         return true;
+    }
+
+    public function isExpiredStringToken ($token){
+        try {
+            $dataToken = $this->jwtProvider->load($token);
+            if (!$dataToken->isExpired($token)) {
+                return false;
+            }
+        } catch (\Throwable $th) {
+            return false;
+        }
     }
 }
