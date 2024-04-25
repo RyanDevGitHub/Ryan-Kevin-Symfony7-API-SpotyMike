@@ -29,167 +29,161 @@ class LoginController extends AbstractController
         $this->repository = $entityManager->getRepository(User::class);
         $this->userUtils = $userUtils;
     }
-
+    
+    
     #[Route('/register', name: 'app_register_post', methods: ['POST', 'PUT'])]
     public function create(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
-        $user = new User();
-        if (empty($request->get('firstname'))) {
-            return $this->json([
-                'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.",
-            ]);
+        $data = json_decode($request->getContent(), true);
+    
+        $requiredFields = ['firstname', 'lastname', 'email', 'dateBirth', 'password'];
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "Des champs obligatoires sont manquants.",
+                ]);
+            }
         }
-        if (empty($request->get('lastname'))) {
+    
+        if (!$this->userUtils->isValidEmail($data['email'])) {
             return $this->json([
-                'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.",
-            ]);
-        }
-        if (empty($request->get('email'))) {
-            return $this->json([
-                'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.",
-            ]);
-        }
-        if (empty($request->get('dateBirth'))) {
-            return $this->json([
-                'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.",
-            ]);
-        }
-        if (empty($request->get('password'))) {
-            return $this->json([
-                'error' => (true),
-                'message' => "Des champs obligatoires sont manquants.",
-            ]);
-        }
-
-        if (!$this->userUtils->isValidEmail($request->get('email'))) {
-            return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le format de l'email est invalide.",
             ]);
         }
-        if (!$this->userUtils->isValidPassword($request->get('password'))) {
+    
+        if (!$this->userUtils->isValidPassword($data['password'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
             ]);
         }
-        if (!$this->userUtils->DateOfBirthFormatIsValid($request->get('dateBirth'))) {
+    
+        if (!$this->userUtils->DateOfBirthFormatIsValid($data['dateBirth'])) {
             return $this->json([
-                'error' => (true),
-                'message' => "Le format de la date de naissance est invalid. Le format attendu est JJ/MM/AAAA",
+                'error' => true,
+                'message' => "Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA",
             ]);
         }
-        if (!$this->userUtils->isValidAge($request->get('dateBirth'))) {
+    
+        if (!$this->userUtils->isValidAge($data['dateBirth'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "L'utilisateur doit avoir avoir au moins 12 ans.",
             ]);
         }
-        if (!is_null($request->get('tel')) && !$this->userUtils->isValidPhoneNumber($request->get('tel'))) {
+    
+        $tel = $data['tel'] ?? null;
+        if (!is_null($tel) && !$this->userUtils->isValidPhoneNumber($tel)) {
             return $this->json([
-                'error' => (true),
-                'message' => "Le format du numéros de téléphone est invalide.",
+                'error' => true,
+                'message' => "Le format du numéro de téléphone est invalide.",
             ]);
         }
-
-        if (!is_null($request->get('sexe')) && !$this->userUtils->isValidSex($request->get('sexe'))) {
+    
+        $sexe = $data['sexe'] ?? null;
+        if (!is_null($sexe) && !$this->userUtils->isValidSex($sexe)) {
             return $this->json([
-                'error' => (true),
-                'message' => "La valeur du champ sexe est invalide.Les valeurs autorisées sont 0 pour Femme,1 pour Homme.",
+                'error' => true,
+                'message' => "La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme.",
             ]);
         }
-
-        if (!$this->userUtils->IsAvailableEmail($request->get('email'))) {
+    
+        if (!$this->userUtils->IsAvailableEmail($data['email'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Cet email est déjà utilisé par un autre compte.",
             ]);
         }
-
-        $user->setFirstName($request->get('firstname'));
-        $user->setName($request->get('firstname'));
-        $user->setLastName($request->get('lastname'));
-        $user->setEmail($request->get('email'));
-        $user->setIdUser(strval(mt_rand(1000, 9999)));
-        $user->setDateBirth(new DateTime($request->get('dateBirth')));
-        $user->setCreateAt(new DateTimeImmutable());
-        $user->setUpdateAt(new DateTimeImmutable());
-
-        $password = $request->get('password');
-        $hash = $passwordHash->hashPassword($user, $password); // Hash le password envoyez par l'utilisateur
-        $user->setPassword($hash);
-        if (!is_null($request->get('tel'))) {
-            $user->setTel($request->get('tel'));
+    
+        $user = new User();
+        $user->setFirstName($data['firstname'])
+             ->setName($data['firstname'])
+             ->setLastName($data['lastname'])
+             ->setEmail($data['email'])
+             ->setIdUser(strval(mt_rand(1000, 9999)))
+             ->setDateBirth(new DateTime($data['dateBirth']))
+             ->setCreateAt(new DateTimeImmutable())
+             ->setUpdateAt(new DateTimeImmutable())
+             ->setPassword($passwordHash->hashPassword($user, $data['password']));
+    
+        if (!is_null($tel)) {
+            $user->setTel($tel);
         }
-        if (!is_null($request->get('sexe'))) {
-            $user->setSexe($request->get('sexe'));
+        if (!is_null($sexe)) {
+            $user->setSexe($sexe);
         }
         $user->setDisable(0);
+    
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-
+    
         return $this->json([
-            'error' => (false),
-            'message' => "l'utilisateur a bien été créé avec succès",
+            'error' => false,
+            'message' => "L'utilisateur a bien été créé avec succès",
             'user' => $user->serializer(),
         ]);
     }
-
+    
+    
     // use Symfony\Component\HttpFoundation\Request;
-    #[Route('/login', name: 'app_login_post', methods: ['POST', 'PUT'])]
+    #[Route('/login2', name: 'app_login_post', methods: ['POST', 'PUT'])]
     public function login(Request $request, JWTTokenManagerInterface $JWTManager, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
-
-        if (empty($request->get('password')) || empty($request->get('email'))) {
+        $requestData = json_decode($request->getContent(), true);
+    
+        if (empty($requestData['password']) || empty($requestData['email'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Email/password manquants.",
             ]);
         }
-        if (!$this->userUtils->isValidEmail($request->get('email'))) {
+    
+        $email = $requestData['email'];
+        $password = $requestData['password'];
+    
+        if (!$this->userUtils->isValidEmail($email)) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le format de l'email est invalide.",
             ]);
         }
-
-        if (!$this->userUtils->isValidPassword($request->get('password'))) {
+    
+        if (!$this->userUtils->isValidPassword($password)) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
             ]);
         }
+    
         /** @var User|null $user */
-        $user = $this->repository->findOneBy(["email" => $request->get('email')]);
+        $user = $this->repository->findOneBy(["email" => $email]);
+    
         if (!$user) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Aucun compte existe avec cette adresse email.",
             ]);
         }
-        if (!$passwordHash->isPasswordValid($user, $request->get('password'))) {
+    
+        if (!$passwordHash->isPasswordValid($user, $password)) {
             return $this->json([
-                'error' => (true),
-                'message' => "  Mot de passe incorrecte.",
+                'error' => true,
+                'message' => "Mot de passe incorrect.",
             ]);
         }
+    
         if ($this->userUtils->IsDisableAccount($user)) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le compte n'est plus actif ou est suspendu.",
             ]);
         }
-
-        $parameters = json_decode($request->getContent(), true);
-
-
+    
         return $this->json([
             'error' => false,
-            'message' => "L'utilisateur a été authentifié succès",
+            'message' => "L'utilisateur a été authentifié avec succès",
             'user' => $user->serializer(),
             'token' => $JWTManager->create($user),
         ]);

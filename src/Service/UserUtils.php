@@ -139,4 +139,7 @@ class UserUtils
         }
         return false;
     }
+    function IsValidLabel($label){
+        return true;
+    }
 }
