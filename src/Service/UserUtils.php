@@ -70,10 +70,10 @@ class UserUtils
     function isValidAge($dateString)
     {
         // Convertir la date en un objet DateTime
-        $date = DateTime::createFromFormat('d/m/Y', $dateString);
+        $date = $dateString;
 
         // Vérifier si la date est valide et si elle est d'au moins 12 ans
-        if ($date && $date->diff(new DateTime())->y >= 12) {
+        if ($date && $date->diff(new DateTime())->y >= 16) {
             return true;
         } else {
             return false;

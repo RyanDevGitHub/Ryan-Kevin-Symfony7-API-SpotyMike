@@ -15,23 +15,21 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class ArtistController extends AbstractController
 {
     private UserUtils $userUtils;
+    private TokenVerifierService $tokenUtils ;
 
-    public function __construct(UserUtils $userUtils)
+    public function __construct(UserUtils $userUtils, TokenVerifierService $tokenUtils)
     {
         $this->userUtils = $userUtils;
+        $this->tokenUtils = $tokenUtils;
     }
 
     #[Route('/artist', name: 'create_artist', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         // Check if a user is authenticated
-        dd($tokenStorage);
-        $user = $tokenStorage->getToken()->getUser();
-        if (!($user instanceof User)) {
-            return $this->json([
-                'error' => true,
-                'message' => 'Unauthorized',
-            ], 401);
+        $user = $this->tokenUtils->checkToken($request);
+        if($user === false){
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
         }
 
         // Get the user's email from the token
@@ -42,12 +40,9 @@ class ArtistController extends AbstractController
         $userEntity = $userRepository->findOneBy(['email' => $email]);
 
         // Calculate user's age based on date of birth
-        $dateOfBirth = $userEntity->getDateOfBirth();
-        $today = new \DateTime();
-        $age = $today->diff($dateOfBirth)->y;
-
+        $dateOfBirth = $userEntity->getDateBirth();
         // Check if the user meets the minimum age requirement
-        if (!$this->userUtils->isValidAge($age)) {
+        if (!$this->userUtils->isValidAge($dateOfBirth)) {
             return $this->json([
                 'error' => true,
                 'message' => 'Vous devez avoir au moins 16 ans pour être artiste.',
@@ -69,7 +64,7 @@ class ArtistController extends AbstractController
         }
 
         // Check if the label ID format is valid
-        if (!$this->userUtils->isLabelValid($requestData['label'])) {
+        if (!$this->userUtils->isValidLabel($requestData['label'])) {
             return $this->json([
                 'error' => true,
                 'message' => "Le format de l'id du label est invalide.",
@@ -89,8 +84,7 @@ class ArtistController extends AbstractController
         // Create a new Artist entity
         $artist = new Artist();
         $artist->setFullname($requestData['fullname'])
-               ->setLabel($requestData['label'])
-               ->setUserIdUse($userEntity->getUserIdUser());
+               ->setLabel($requestData['label']);
 
 
         // Set optional fields if provided
@@ -99,7 +93,7 @@ class ArtistController extends AbstractController
         }
 
         // Set the user associated with the artist
-        $artist->setUser($userEntity);
+        $artist->setUserIdUser($userEntity);
 
         // Persist the entity to the database
         $entityManager->persist($artist);
@@ -110,6 +104,70 @@ class ArtistController extends AbstractController
             'success' => true,
             'message' => "Votre compte artiste a ete cree avec succes. Bienvenue dans notre communaute d'artistes ! ",
             'artist_id' => $artist->serializer(),
+        ]);
+    }
+    #[Route('/artist', name: 'get_artists', methods: ['GET'])]
+    public function getArtists(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+         // Check if a user is authenticated
+         $user = $this->tokenUtils->checkToken($request);
+         if($user === false){
+             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+         }
+ 
+        $pageSize = $request->query->getInt('pageSize', 5);
+
+        // Query to count total number of artists
+        $artistRepository = $entityManager->getRepository(Artist::class);
+        $totalArtists = $artistRepository->count([]);
+
+        // Calculate total number of pages
+        $totalPages = ceil($totalArtists / $pageSize);
+
+        // Get the page number from the request or default to 1
+        $page = $request->query->getInt('page', 1);
+
+        // Calculate offset for pagination
+        $offset = ($page - 1) * $pageSize;
+
+        // Fetch artists with pagination
+        $artists = $artistRepository->findBy([], null, $pageSize, $offset);
+
+        // Serialize artists data
+        $serializedArtists = [];
+        foreach ($artists as $artist) {
+            $serializedArtists[] = $artist->serializer();
+        }
+
+        return $this->json([
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalPages' => $totalPages,
+            'totalArtists' => $totalArtists,
+            'artists' => $serializedArtists,
+        ]);
+    }
+    #[Route('/artists/{fullname}', name: 'get_artist_by_fullname', methods: ['GET'])]
+    public function getArtistByFullName(string $fullname, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->tokenUtils->checkToken($request);
+        if($user === false){
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+        }
+        // Find the artist by full name
+        $artistRepository = $entityManager->getRepository(Artist::class);
+        $artist = $artistRepository->findOneBy(['fullname' => $fullname]);
+
+        // If artist not found, return 404
+        if (!$artist) {
+            return $this->json(['error' => true, 'message' => 'Artist not found'], 404);
+        }
+
+        // Serialize artist data
+        $serializedArtist = $artist->serializer();
+
+        return $this->json([
+            'artist' => $serializedArtist,
         ]);
     }
 }
