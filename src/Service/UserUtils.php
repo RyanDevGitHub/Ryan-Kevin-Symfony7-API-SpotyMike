@@ -24,11 +24,16 @@ class UserUtils
         $this->jwtManager = $jwtManager;
         $this->jwtProvider = $jwtProvider;
     }
-
     public function isValidEmail(string $email): bool
     {
-        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+        // Expression régulière basée sur la norme RFC 5322 pour valider l'email
+        $pattern = '/^(?![_.-])(?!.*[_.-]{2})[a-zA-Z0-9._-]+@(?:[a-zA-Z0-9-]+[.—]*\\.)+[a-zA-Z]{2,}$/';
+        
+        // Vérifie si l'email correspond au motif
+        return preg_match($pattern, $email) === 1;
     }
+    
+
 
     public function isValidPassword(string $password): bool
     {
@@ -82,20 +87,20 @@ class UserUtils
 
 
     function isValidPhoneNumber($phoneNumber)
-    {
-        /**
-         * Vérifie si un numéro de téléphone est valide.
-         *
-         * @param string $phoneNumber Le numéro de téléphone à vérifier.
-         * @return bool True si le numéro est valide, False sinon.
-         */
-        $pattern = "/^[0-9]{10}$/"; // Format accepté : 10 chiffres
-        if (preg_match($pattern, $phoneNumber)) {
-            return true;
-        } else {
-            return false;
-        }
+{
+    /**
+     * Vérifie si un numéro de téléphone est valide.
+     *
+     * @param string $phoneNumber Le numéro de téléphone à vérifier.
+     * @return bool True si le numéro est valide, False sinon.
+     */
+    $pattern = "/^0[1-9](?:[-. ]?[0-9]){8}$/";// Format accepté pour les numéros de téléphone français
+    if (preg_match($pattern, $phoneNumber)) {
+        return true;
+    } else {
+        return false;
     }
+}
 
     function isValidSex($sex)
     {

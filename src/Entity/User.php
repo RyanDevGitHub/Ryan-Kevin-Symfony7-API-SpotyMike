@@ -182,18 +182,57 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->getEmail();
     }
 
-    public function serializer()
+    public function serializerRegister()
     {
+        $dateOfBirth = $this->getDateBirth();
+        $dateBirth = $dateOfBirth->format("d-m-Y");
+        $telValue = $this->getTel();
+        
+        $sexe  = $this->getSexe() !== null ? $this->getSexe(): 'Homme';
+        if($sexe == 0){
+            $sexe = 'Femme';
+        }else{
+            $sexe = 'Homme';
+        }
         return [
-            "id" => $this->getId(),
-            "idUser" => $this->getIdUser(),
-            "name" => $this->getName(),
+            "firstname" => $this->getFirstName(),
+            "lastname" => $this->getLastName(),
             "email" => $this->getEmail(),
-            "tel" => $this->getTel(),
+            "tel" => $telValue = $telValue !== null ? $telValue : "",
+            "sexe" => $sexe,
+            "dateBirth" => $dateBirth,
             "createAt" => $this->getCreateAt(),
-            "artist" => $this->getArtist() ?  $this->getArtist()->serializer() : [],
+            "updateAt" => $this->getUpdateAt(),
         ];
     }
+
+    public function serializerLogin()
+    {
+        $dateOfBirth = $this->getDateBirth();
+        $dateBirth = $dateOfBirth->format("d-m-Y");
+        $telValue = $this->getTel();
+        $artist = $this->getArtist() !==  null ? $this->getArtist() : new Artist() ;
+        
+        
+        $sexe  = $this->getSexe() !== null ? $this->getSexe(): 'Homme';
+        if($sexe == 0){
+            $sexe = 'Femme';
+        }else{
+            $sexe = 'Homme';
+        }
+        return [
+            "firstname" => $this->getFirstName(),
+            "lastname" => $this->getLastName(),
+            "email" => $this->getEmail(),
+            "tel" => $telValue = $telValue !== null ? $telValue : "",
+            "sexe" => $sexe,
+            "artist" => $artist->serializer(),
+            "dateBirth" => $dateBirth,
+            "createAt" => $this->getCreateAt(),
+        ];
+    }
+
+
 
     public function getFirstName(): ?string
     {

@@ -34,8 +34,15 @@ class TokenVerifierService
                 $token = $data[1];
                 try {
                     $dataToken = $this->jwtProvider->load($token);
+                    // dd($dataToken->isVerified());
                     if ($dataToken->isVerified()) {
-                        $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
+                        $payload = $dataToken->getPayload();
+                        if(array_key_exists("email", $payload)){
+                            $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
+                        }else if(array_key_exists("username", $payload)){
+                            $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
+                        }
+                        
                         return ($user) ? $user : false;
                     }
                 } catch (\Throwable $th) {

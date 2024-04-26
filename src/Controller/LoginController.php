@@ -38,76 +38,78 @@ class LoginController extends AbstractController
             return $this->json([
                 'error' => (true),
                 'message' => "Des champs obligatoires sont manquants.",
-            ]);
+            ],400);
         }
         if (empty($request->get('lastname'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Des champs obligatoires sont manquants.",
-            ]);
+            ],400);
         }
         if (empty($request->get('email'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Des champs obligatoires sont manquants.",
-            ]);
+            ],400);
         }
         if (empty($request->get('dateBirth'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Des champs obligatoires sont manquants.",
-            ]);
+            ],400);
         }
         if (empty($request->get('password'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Des champs obligatoires sont manquants.",
-            ]);
+            ],400);
         }
 
         if (!$this->userUtils->isValidEmail($request->get('email'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Le format de l'email est invalide.",
-            ]);
+            ],400);
         }
         if (!$this->userUtils->isValidPassword($request->get('password'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
-            ]);
-        }
+            ],400);
+        }   
         if (!$this->userUtils->DateOfBirthFormatIsValid($request->get('dateBirth'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "Le format de la date de naissance est invalid. Le format attendu est JJ/MM/AAAA",
-            ]);
+                'message' => "Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA.",
+            ],400);
         }
         if (!$this->userUtils->isValidAge($request->get('dateBirth'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "L'utilisateur doit avoir avoir au moins 12 ans.",
-            ]);
+                'message' => "L'utilisateur doit avoir au moins 12 ans.",
+            ],400);
         }
         if (!is_null($request->get('tel')) && !$this->userUtils->isValidPhoneNumber($request->get('tel'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "Le format du numéros de téléphone est invalide.",
-            ]);
+                'message' => "Le format du numéro de téléphone est invalide.",
+            ],400);
         }
 
         if (!is_null($request->get('sexe')) && !$this->userUtils->isValidSex($request->get('sexe'))) {
             return $this->json([
                 'error' => (true),
-                'message' => "La valeur du champ sexe est invalide.Les valeurs autorisées sont 0 pour Femme,1 pour Homme.",
-            ]);
+                'message' => "La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme.",
+            ],400);
+        }else{
+            $user->setSexe(1);
         }
 
         if (!$this->userUtils->IsAvailableEmail($request->get('email'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Cet email est déjà utilisé par un autre compte.",
-            ]);
+            ],409);
         }
 
         $user->setFirstName($request->get('firstname'));
@@ -115,7 +117,9 @@ class LoginController extends AbstractController
         $user->setLastName($request->get('lastname'));
         $user->setEmail($request->get('email'));
         $user->setIdUser(strval(mt_rand(1000, 9999)));
-        $user->setDateBirth(new DateTime($request->get('dateBirth')));
+        $dateOfBirth = DateTimeImmutable::createFromFormat('d/m/Y', $request->get('dateBirth'));
+        $dateOfBirth->format('dd/mm/yyyy');
+        $user->setDateBirth($dateOfBirth);
         $user->setCreateAt(new DateTimeImmutable());
         $user->setUpdateAt(new DateTimeImmutable());
 
@@ -135,8 +139,8 @@ class LoginController extends AbstractController
         return $this->json([
             'error' => (false),
             'message' => "l'utilisateur a bien été créé avec succès",
-            'user' => $user->serializer(),
-        ]);
+            'user' => $user->serializerRegister(),
+        ],201);
     }
 
     // use Symfony\Component\HttpFoundation\Request;
@@ -148,20 +152,20 @@ class LoginController extends AbstractController
             return $this->json([
                 'error' => (true),
                 'message' => "Email/password manquants.",
-            ]);
+            ],400);
         }
         if (!$this->userUtils->isValidEmail($request->get('email'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Le format de l'email est invalide.",
-            ]);
+            ],400);
         }
 
         if (!$this->userUtils->isValidPassword($request->get('password'))) {
             return $this->json([
                 'error' => (true),
                 'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
-            ]);
+            ],400);
         }
         /** @var User|null $user */
         $user = $this->repository->findOneBy(["email" => $request->get('email')]);
@@ -181,15 +185,15 @@ class LoginController extends AbstractController
             }else{
                 return $this->json([
                     'error' => (true),
-                    'message' => "Trop de tentative de connexion (5 max).Veuillez réessayer ultèrieurement - $time min d'attente.",
-                ]);
+                    'message' => "Trop de tentatives de connexion (5 max). Veuillez réessayer ultérieurement - 2 min d'attente.",
+                ],429);
             }
         }
         if ($this->userUtils->IsDisableAccount($user)) {
             return $this->json([
                 'error' => (true),
                 'message' => "Le compte n'est plus actif ou est suspendu.",
-            ]);
+            ],403);
         }
 
         $parameters = json_decode($request->getContent(), true);
@@ -198,7 +202,7 @@ class LoginController extends AbstractController
         return $this->json([
             'error' => false,
             'message' => "L'utilisateur a été authentifié succès",
-            'user' => $user->serializer(),
+            'user' => $user->serializerLogin(),
             'token' => $JWTManager->create($user),
         ]);
     }
@@ -213,20 +217,20 @@ class LoginController extends AbstractController
                 'error' => (true),
                 'message' => "Authentification requise. Vous devez être connecté pour effectuer cette action.",
 
-            ]);
+            ],401);
         } else {
             if ($this->userUtils->IsDisableAccount($token)) {
                 return $this->json([
                     'error' => (true),
                     'message' => "Le compte est déjà désactivé.",
-                ]);
+                ],409);
             } else {
                 $token->setDisable(1);
                 $this->entityManager->persist($token);
                 $this->entityManager->flush();
                 return $this->json([
                     'success' => (true),
-                    'message' => "Votre compte a été désactivé avec succès.Nous sommes désolés de vous voir partir.",
+                    'message' => "Votre compte a été désactivé avec succès. Nous sommes désolés de vous voir partir.",
                 ]);
             }
         }

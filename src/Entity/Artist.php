@@ -35,6 +35,18 @@ class Artist
     #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_User_idUser')]
     private Collection $albums;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $date_begin = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $date_end = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $active = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $created_at = null;
+
     public function __construct()
     {
         $this->songs = new ArrayCollection();
@@ -154,12 +166,63 @@ class Artist
     public function serializer($children = false)
     {
         return [
-            "id" => $this->getId(),
-            "idUser" => ($children) ? $this->getUserIdUser() : null,
-            "fullname" => $this->getFullname(),
-            "label" => $this->getLabel(),
-            "description" => $this->getDescription(),
-            "songs" => $this->getSongs()
+            "fullname" => $this->getFullname() ?: "",
+            "label" => $this->getLabel() ?: "",
+            "description" => $this->getDescription() ?: "",
+            "date_begin" => $this->getDateBegin()?: "",
+            "date_end" => $this->getDateEnd()?: "",
+            "active" => $this->getActive()?: "",
+            "created_At" => $this->getCreatedAt()?: "",
+            "albums" => $this->getAlbums(),
+            "songs" => $this->getSongs(),
         ];
+    }
+
+    public function getDateBegin(): ?\DateTimeInterface
+    {
+        return $this->date_begin;
+    }
+
+    public function setDateBegin(\DateTimeInterface $date_begin): static
+    {
+        $this->date_begin = $date_begin;
+
+        return $this;
+    }
+
+    public function getDateEnd(): ?\DateTimeInterface
+    {
+        return $this->date_end;
+    }
+
+    public function setDateEnd(?\DateTimeInterface $date_end): static
+    {
+        $this->date_end = $date_end;
+
+        return $this;
+    }
+
+    public function getActive(): ?int
+    {
+        return $this->active;
+    }
+
+    public function setActive(?int $active): static
+    {
+        $this->active = $active;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $created_at): static
+    {
+        $this->created_at = $created_at;
+
+        return $this;
     }
 }
