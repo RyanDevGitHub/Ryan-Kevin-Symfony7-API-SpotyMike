@@ -106,44 +106,48 @@ class ArtistController extends AbstractController
             'artist_id' => $artist->serializer(),
         ]);
     }
-    #[Route('/artist', name: 'get_artists', methods: ['GET'])]
+    #[Route('/artists', name: 'get_artists', methods: ['GET'])]
     public function getArtists(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-         // Check if a user is authenticated
-         $user = $this->tokenUtils->checkToken($request);
-         if($user === false){
-             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
-         }
- 
-        $pageSize = $request->query->getInt('pageSize', 5);
+        // Retrieve the current page number from the query parameters (default to 1 if not provided)
+        $currentPage = $request->query->getInt('currentPage', 1);
 
-        // Query to count total number of artists
-        $artistRepository = $entityManager->getRepository(Artist::class);
-        $totalArtists = $artistRepository->count([]);
+        // Ensure currentPage is at least 1
+        $currentPage = max(1, $currentPage);
+
+        // Define the number of artists per page
+        $pageSize = 5;
+
+        // Calculate the offset based on the current page
+        $offset = ($currentPage - 1) * $pageSize;
+
+        // Retrieve the artists for the current page
+        $artists = $entityManager->getRepository(Artist::class)->findBy([], null, $pageSize, $offset);
+
+        // Serialize the artist data (example assuming you have a serializer method)
+        $serializedArtists = array_map(function ($artist) {
+            return $artist->serialize(); // Implement your serialization logic here
+        }, $artists);
+
+        // Calculate total number of artists for pagination info
+        $totalArtists = $entityManager->getRepository(Artist::class)->count([]);
 
         // Calculate total number of pages
         $totalPages = ceil($totalArtists / $pageSize);
 
-        // Get the page number from the request or default to 1
-        $page = $request->query->getInt('page', 1);
-
-        // Calculate offset for pagination
-        $offset = ($page - 1) * $pageSize;
-
-        // Fetch artists with pagination
-        $artists = $artistRepository->findBy([], null, $pageSize, $offset);
-
-        // Serialize artists data
-        $serializedArtists = [];
-        foreach ($artists as $artist) {
-            $serializedArtists[] = $artist->serializer();
-        }
-
-        return $this->json([
-            'page' => $page,
+        // Construct pagination information
+        $pagination = [
+            'currentPage' => $currentPage,
             'pageSize' => $pageSize,
             'totalPages' => $totalPages,
             'totalArtists' => $totalArtists,
+        ];
+
+        // Return the response with the artists and pagination details
+        return $this->json([
+            'error' => false,
+            'message' => 'Information des artistes récupérés avec succès',
+            'pagination' => $pagination,
             'artists' => $serializedArtists,
         ]);
     }
