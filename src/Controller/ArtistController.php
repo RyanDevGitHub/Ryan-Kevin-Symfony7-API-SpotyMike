@@ -28,72 +28,57 @@ class ArtistController extends AbstractController
     {
         // Check if a user is authenticated
         $user = $this->tokenUtils->checkToken($request);
-        if($user === false){
+        if ($user === false) {
             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
-        }
-
-        // Get the user's email from the token
-        $email = $user->getEmail();
-
-        // Find the user entity based on the email
-        $userRepository = $entityManager->getRepository(User::class);
-        $userEntity = $userRepository->findOneBy(['email' => $email]);
-
-        // Calculate user's age based on date of birth
-        $dateOfBirth = $userEntity->getDateBirth();
-        // Check if the user meets the minimum age requirement
-        if (!$this->userUtils->isValidAge($dateOfBirth)) {
-            return $this->json([
-                'error' => true,
-                'message' => 'Vous devez avoir au moins 16 ans pour être artiste.',
-            ]);
         }
 
         // Parse JSON request body
         $requestData = json_decode($request->getContent(), true);
 
         // Check if all required fields are present
-        $requiredFields = ['fullname', 'label'];
+        $requiredFields = ['fullname', 'label']; // Ensure 'avatar' field is provided
         foreach ($requiredFields as $field) {
             if (!isset($requestData[$field])) {
                 return $this->json([
                     'error' => true,
-                    'message' => "L'id du label et le fullname sont obligatoires.",
+                    'message' => "Les champs 'fullname', 'label' et 'avatar' sont obligatoires.",
                 ]);
             }
-        }
+        };
 
-        // Check if the label ID format is valid
-        if (!$this->userUtils->isValidLabel($requestData['label'])) {
-            return $this->json([
-                'error' => true,
-                'message' => "Le format de l'id du label est invalide.",
-            ]);
+        // Validate the avatar field
+        if(!isset($requestData['avatar'])){
+            $avatarData = base64_decode($avatarBase64);
+        // Check if the decoding was successful
+            if ($avatarData === false || !isValidImage($avatarData)) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide.",
+                ]);
+            } 
+        else{
+            $avatarBase64 = '';
         }
+    };
 
-        // Check if the full name is already used in the database
-        $artistRepository = $entityManager->getRepository(Artist::class);
-        $existingArtist = $artistRepository->findOneBy(['fullname' => $requestData['fullname']]);
-        if ($existingArtist !== null) {
-            return $this->json([
-                'error' => true,
-                'message' => "Ce nom d'artiste est déjà pris. Veuillez en choisir un autre.",
-            ]);
-        }
+
+        // Get the user entity based on the authenticated user
+        $email = $user->getEmail();
+        $userRepository = $entityManager->getRepository(User::class);
+        $userEntity = $userRepository->findOneBy(['email' => $email]);
 
         // Create a new Artist entity
         $artist = new Artist();
         $artist->setFullname($requestData['fullname'])
-               ->setLabel($requestData['label']);
+            ->setLabel($requestData['label'])
+            ->setAvatar($avatarDataBase64) // Store
+            ->setCreatedAt(new \DateTimeImmutable())
+            ->setUserIdUser($userEntity);
 
-
-        // Set optional fields if provided
+        // Set optional description field if provided
         if (isset($requestData['description'])) {
             $artist->setDescription($requestData['description']);
         }
-
-        // Set the user associated with the artist
-        $artist->setUserIdUser($userEntity);
 
         // Persist the entity to the database
         $entityManager->persist($artist);
@@ -102,8 +87,8 @@ class ArtistController extends AbstractController
         // Return the newly created artist as JSON response
         return $this->json([
             'success' => true,
-            'message' => "Votre compte artiste a ete cree avec succes. Bienvenue dans notre communaute d'artistes ! ",
-            'artist_id' => $artist->serializer(),
+            'message' => "Votre compte artiste a été créé avec succès. Bienvenue dans notre communauté d'artistes ! ",
+            'artist' => $artist->serializer(),
         ]);
     }
     #[Route('/artists', name: 'get_artists', methods: ['GET'])]

@@ -29,11 +29,18 @@ class Artist
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+
     #[ORM\ManyToMany(targetEntity: Song::class, mappedBy: 'Artist_idUser')]
     private Collection $songs;
 
     #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_User_idUser')]
     private Collection $albums;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $Avatar = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $CreatedAt = null;
 
     public function __construct()
     {
@@ -57,7 +64,15 @@ class Artist
 
         return $this;
     }
-
+    public function getAvatar(): ?string
+    {
+        return $this->Avatar;
+    }
+    public function setAvatar(string $Avatar): static
+    {
+        $this->Avatar = $Avatar;
+        return $this;
+    }
     public function getFullname(): ?string
     {
         return $this->fullname;
@@ -151,15 +166,34 @@ class Artist
         return $this;
     }
 
-    public function serializer($children = false)
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->CreatedAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $CreatedAt): static
+    {
+        $this->CreatedAt = $CreatedAt;
+
+        return $this;
+    }
+
+    public function serializer(User $user)
     {
         return [
             "id" => $this->getId(),
-            "idUser" => ($children) ? $this->getUserIdUser() : null,
+            "firstname" => $user->getFirstName(),
+            "lastname" => $user->getLastName(),
+            "dateBirth" => $user->getDateBirth(),
+            "sexe" => $user -> getSexe(),
+            "idUser" => $this->getUserIdUser(),
             "fullname" => $this->getFullname(),
             "label" => $this->getLabel(),
             "description" => $this->getDescription(),
-            "songs" => $this->getSongs()
+            "songs" => $this->getSongs(),
+            "album" => $this->getAlbums(),
+            "Artist.createdAt" => $this->getCreatedAt()
         ];
     }
+
 }
