@@ -81,10 +81,23 @@ class AlbumController extends AbstractController
                 'message' => "Vous n'avez pas l'autorisation pour accéder à cet album.",
             ],403);
          }
+         if(!$this->albumUtils->isBinarySong( $request->get('song'))){
+            return $this->json([
+                'error' => true,
+                'message' => "Erreur sur le format du fichier qui n'est pas pris en compte.",
+            ],422);
+         }
+         if(!$this->albumUtils->IsValidFileSize($request->get('song'))){
+            return $this->json([
+                'error' => true,
+                'message' => "Le fichier envoyé est trop ou pas assez volumineux. Vous devez respecter la taille entre 1Mb et 7Mb.",
+            ],422);
+         }  
 
         return $this->json([
-            'message' => 'Welcome to your new controller!'.$id,
-            'path' => 'src/Controller/AlbumController.php',
+            'error' => false,
+            'message' => 'Album mis à jour avec succès.',
+            'idSong:'=>"xxx",
         ]);
     }
 }
