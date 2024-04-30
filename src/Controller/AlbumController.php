@@ -69,6 +69,7 @@ class AlbumController extends AbstractController
         }
          //check user Id  = artist_user_id_user_id in album
          if(!$this->albumUtils->userCanAccesToAlbum($user , $id)){
+            
             $album = $this->albumRepository->findById($id);
             if(!$album){
                 return $this->json([

@@ -173,7 +173,7 @@ class Artist
             "date_end" => $this->getDateEnd()?: "",
             "active" => $this->getActive()?: "",
             "created_At" => $this->getCreatedAt()?: "",
-            "albums" => $this->getAlbums(),
+            //"albums" => $this->getAlbums(),
             "songs" => $this->getSongs(),
         ];
     }

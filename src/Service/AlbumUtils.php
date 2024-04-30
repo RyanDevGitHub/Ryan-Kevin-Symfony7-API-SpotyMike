@@ -38,20 +38,29 @@ class AlbumUtils
     }
 
     public function isBinarySong($song){
-         // Obtenez le type MIME du fichier
-    $mime_type = mime_content_type($song);
+    // Créez un objet FileInfo
+    $song = str_replace(' ', '', $song);
+    $song = pack('H*', $song);
+    $song = base64_encode($song);
+    $song_binary = base64_encode($song);
+    //dd($song_binary);
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
 
+    // Obtenez le type MIME à partir du contenu binaire
+    $mime_type = $finfo->buffer($song_binary);
+    //dd($song);
     // Types MIME courants pour les fichiers audio
     $audio_mime_types = array(
-        'audio/mp3',
-        'audio/wav'
+        'audio/mpeg', // MP3
+        'audio/x-wav' // WAV
     );
 
-    // Vérifiez si le type MIME correspond à un type de contenu audio
+    dd($mime_type);
+    // Vérifiez si le type MIME correspond à un type audio valide
     if (in_array($mime_type, $audio_mime_types)) {
-        return true; // Le fichier est au format binaire audio
+        return true;
     } else {
-        return false; // Le fichier n'est pas un format binaire audio
+        return false;
     }
     }
 
