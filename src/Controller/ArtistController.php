@@ -167,4 +167,44 @@ class ArtistController extends AbstractController
             'artist' => $serializedArtist,
         ]);
     }
+    #[Route('/artist', name: 'update_artist', methods: ['PUT'])]
+    public function updateArtist(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->tokenUtils->checkToken($request);
+        if($user === false){
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+        }
+        // Retrieve artist associated with the authenticated user
+        $artist = $user->getArtist();
+        if (!$artist) {
+            return $this->json(['error' => true, 'message' => 'Compte artiste non trouvé. Veuillez créer un compte artiste.'], 404);
+        }
+
+        // Parse JSON request body
+        $requestData = json_decode($request->getContent(), true);
+
+        // Validate new fullname (if provided)
+        if (isset($requestData['fullname']) && $requestData['fullname'] !== $artist->getFullname()) {
+            // Check if the new fullname is already taken
+            $existingArtist = $entityManager->getRepository(Artist::class)->findOneBy(['fullname' => $requestData['fullname']]);
+            if ($existingArtist) {
+                return $this->json(['error' => true, 'message' => 'Ce nom d\'artiste est déjà pris. Veuillez en choisir un autre.'], 400);
+            }
+            // Update artist's fullname
+            $artist->setFullname($requestData['fullname']);
+        }
+
+        // Update other fields if provided
+        if (isset($requestData['label'])) {
+            $artist->setLabel($requestData['label']);
+        }
+        if (isset($requestData['description'])) {
+            $artist->setDescription($requestData['description']);
+        }
+        if (isset($requestData['avatar'])) {
+            $avatarBase64 = $requestData['avatar'];
+            // Handle updating avatar if needed
+            // Validate and update avatar logic here if required
+        }
+    }
 }
