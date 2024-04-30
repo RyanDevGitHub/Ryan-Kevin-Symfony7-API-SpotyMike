@@ -70,7 +70,7 @@ class UserUtils
     function isValidAge($dateString)
     {
         // Convertir la date en un objet DateTime
-        $date = $dateString;
+        $date = new DateTime($dateString);
 
         // Vérifier si la date est valide et si elle est d'au moins 12 ans
         if ($date && $date->diff(new DateTime())->y >= 16) {

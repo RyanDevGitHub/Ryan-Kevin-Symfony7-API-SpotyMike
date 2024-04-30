@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Entity\Artist;
 use App\Entity\User;
 use App\Service\UserUtils;
+use App\Service\ImageUtils;
 use App\Controller\TokenVerifierService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,19 +12,24 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Serializer\SerializerInterface;
+
+
 
 class ArtistController extends AbstractController
 {
     private UserUtils $userUtils;
     private TokenVerifierService $tokenUtils ;
+    private ImageUtils $imageUtils;
 
-    public function __construct(UserUtils $userUtils, TokenVerifierService $tokenUtils)
+    public function __construct(UserUtils $userUtils, TokenVerifierService $tokenUtils, ImageUtils $imageUtils )
     {
         $this->userUtils = $userUtils;
         $this->tokenUtils = $tokenUtils;
+        $this->imageUtils = $imageUtils;
     }
 
-    #[Route('/artist', name: 'create_artist', methods: ['POST'])]
+    #[Route('/artists', name: 'create_artist', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         // Check if a user is authenticated
@@ -47,19 +53,21 @@ class ArtistController extends AbstractController
         };
 
         // Validate the avatar field
-        if(!isset($requestData['avatar'])){
+        if(isset($requestData['avatar'])){
+            $avatarBase64 = $requestData['avatar'];
             $avatarData = base64_decode($avatarBase64);
         // Check if the decoding was successful
-            if ($avatarData === false || !isValidImage($avatarData)) {
+            if ($avatarData === false || !$this->imageUtils-> isValidImage($avatarData)) {
                 return $this->json([
                     'error' => true,
                     'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide.",
                 ]);
             } 
+        }
         else{
             $avatarBase64 = '';
         }
-    };
+    ;
 
 
         // Get the user entity based on the authenticated user
@@ -71,7 +79,7 @@ class ArtistController extends AbstractController
         $artist = new Artist();
         $artist->setFullname($requestData['fullname'])
             ->setLabel($requestData['label'])
-            ->setAvatar($avatarDataBase64) // Store
+            ->setAvatar($avatarBase64) // Store
             ->setCreatedAt(new \DateTimeImmutable())
             ->setUserIdUser($userEntity);
 
@@ -88,11 +96,11 @@ class ArtistController extends AbstractController
         return $this->json([
             'success' => true,
             'message' => "Votre compte artiste a été créé avec succès. Bienvenue dans notre communauté d'artistes ! ",
-            'artist' => $artist->serializer(),
+            'artist' => $artist->getId(),
         ]);
     }
-    #[Route('/artists', name: 'get_artists', methods: ['GET'])]
-    public function getArtists(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/artist', name: 'get_artist', methods: ['GET'])]
+    public function getArtists(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         // Retrieve the current page number from the query parameters (default to 1 if not provided)
         $currentPage = $request->query->getInt('currentPage', 1);
@@ -108,12 +116,11 @@ class ArtistController extends AbstractController
 
         // Retrieve the artists for the current page
         $artists = $entityManager->getRepository(Artist::class)->findBy([], null, $pageSize, $offset);
-
+        $serializedArtists = [];
         // Serialize the artist data (example assuming you have a serializer method)
-        $serializedArtists = array_map(function ($artist) {
-            return $artist->serialize(); // Implement your serialization logic here
-        }, $artists);
-
+        foreach ($artists as $artist) {
+            $serializedArtists[] = $artist->serializer();
+        }
         // Calculate total number of artists for pagination info
         $totalArtists = $entityManager->getRepository(Artist::class)->count([]);
 
@@ -136,9 +143,10 @@ class ArtistController extends AbstractController
             'artists' => $serializedArtists,
         ]);
     }
-    #[Route('/artists/{fullname}', name: 'get_artist_by_fullname', methods: ['GET'])]
-    public function getArtistByFullName(string $fullname, EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/artist/{fullname}', name: 'get_artist_by_fullname', methods: ['GET'])]
+    public function getArtistByFullName(string $fullname, EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
+    
         $user = $this->tokenUtils->checkToken($request);
         if($user === false){
             return $this->json($this->tokenUtils->sendJsonErrorToken(null));

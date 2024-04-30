@@ -1,11 +1,10 @@
 <?php
 
-// src/Service/Utils/UserUtils.php
 
 namespace App\Service;
 
 class ImageUtils{
-    function isValidImage($imageData)
+    public function isValidImage($imageData)
         {
             // Attempt to get image information from the binary data
             $imageInfo = @getimagesizefromstring($imageData);
