@@ -177,7 +177,9 @@ class ArtistController extends AbstractController
         // Retrieve artist associated with the authenticated user
         $artist = $user->getArtist();
         if (!$artist) {
-            return $this->json(['error' => true, 'message' => 'Compte artiste non trouvé. Veuillez créer un compte artiste.'], 404);
+            $redirectUrl = $this->generateUrl('create_artist');
+            $redirectRequest = $this->createRedirectRequest($request, $requestData);
+            return $this->redirect($redirectUrl, JsonResponse::HTTP_FOUND, $redirectRequest);
         }
 
         // Parse JSON request body
@@ -203,8 +205,56 @@ class ArtistController extends AbstractController
         }
         if (isset($requestData['avatar'])) {
             $avatarBase64 = $requestData['avatar'];
+            $avatarData = base64_decode($avatarBase64);
+        // Check if the decoding was successful
+            if ($avatarData === false || !$this->imageUtils-> isValidImage($avatarData)) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide.",
+                ]);
+            }
+            $artist->setAvatar($avatarBase64); 
+        }
+        $entityManager->persist($artist);
+        $entityManager->flush();
             // Handle updating avatar if needed
             // Validate and update avatar logic here if required
-        }
+        return $this->json([
+            'error'=> false,
+            'message' => "les informations de l'artiste ont ete mise jour avec succes."
+        ]);
     }
+    #[Route('/artist', name: 'delete_artist', methods: ['DELETE'])]
+public function deleteArtist(Request $request, EntityManagerInterface $entityManager): JsonResponse
+{
+    $user = $this->tokenUtils->checkToken($request);
+    if ($user === false) {
+        return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+    }
+
+    // Retrieve artist associated with the authenticated user
+    $artist = $user->getArtist();
+    if (!$artist) {
+        return $this->json([
+            'error' => true,
+            'message' => 'Compte artiste non trouvé. Aucune suppression n\'est nécessaire.'
+        ], 404);
+    }
+
+    try {
+        // Remove the artist entity
+        $entityManager->remove($artist);
+        $entityManager->flush();
+
+        return $this->json([
+            'error' => false,
+            'message' => 'Compte artiste supprimé avec succès.'
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'error' => true,
+            'message' => 'Une erreur est survenue lors de la suppression du compte artiste.'
+        ], 500);
+    }
+}
 }
