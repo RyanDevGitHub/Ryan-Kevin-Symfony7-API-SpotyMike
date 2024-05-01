@@ -15,8 +15,7 @@ class Album
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 90)]
-    private ?string $idAlbum = null;
+
 
     #[ORM\Column(length: 90)]
     private ?string $nom = null;
@@ -55,17 +54,6 @@ class Album
     public function setVisibility(int $visibility): static 
     {
         $this->visibility = $visibility;
-    }
-    public function getIdAlbum(): ?string
-    {
-        return $this->idAlbum;
-    }
-
-    public function setIdAlbum(string $idAlbum): static
-    {
-        $this->idAlbum = $idAlbum;
-
-        return $this;
     }
 
     public function getNom(): ?string

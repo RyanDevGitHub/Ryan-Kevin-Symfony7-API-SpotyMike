@@ -7,17 +7,28 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Controller\TokenVerifierService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use App\Service\ImageUtils;
+use App\Entity\Album;
+use App\Entity\Artist;
+
+
 
 class AlbumController extends AbstractController
 
 {
     private TokenVerifierService $tokenUtils ;
+    private ImageUtils $imageUtils;
     
-    public function __construct(EntityManagerInterface $entityManager, UserUtils $userUtils)
+    public function __construct(EntityManagerInterface $entityManager, ImageUtils $imageUtils,TokenVerifierService $tokenUtils)
     {
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(Album::class);
-        $this->userUtils = $userUtils;
+        $this->tokenUtils = $tokenUtils;
+        $this->imageUtils = $imageUtils;
+
+
+
     }
     #[Route('/albums', name: 'get_albums', methods: ['GET'])]
     public function getAlbums(): JsonResponse
@@ -76,33 +87,59 @@ class AlbumController extends AbstractController
         }
         $validCategories = ['RNB', 'RAP'];
         // verify category
-        $category = $requestData['categ'];
+        $validCategories = ['RNB', 'RAP']; // Example list of valid categories
+        $categories = $requestData['categ'];
 
-        if (!in_array($category, $validCategories)) {
-            return $this->json([
-                'error' => true,
-                'message' => "La catégorie cible sont invalide"
-            ], 400); // HTTP 400 Bad Request
+        foreach ($categories as $category) {
+            if (!in_array($category, $validCategories)) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "Les catégories ciblées sont invalides."
+                ], 400); // HTTP 400 Bad Request
+            }
         }
 
+        $stringCateg = implode(', ', $categories);
         //verify if name isnt already taken 
-        $validCategories = $
+        $nom = $requestData['nom'];
+
+        // Check if an artist with the same fullname already exists in the database
+        $existingAlbums = $this->entityManager->getRepository(Album::class)->findOneBy(['nom' => $nom]);
+
+        if ($existingAlbums  !== null) {
+            return $this->json([
+                'error' => true,
+                'message' => "ce titre est deja pris veillez en choisir un autre."
+            ], 409); // HTTP 409 Conflict
+        }
         // Retrieve the artist based on the provided artist_id
-        $artistId = $requestData['artist_id'];
-        $artist = $entityManager->getRepository(Artist::class)->find($artistId);
+        $artistId = $user->getId();
+
+        $artist = $entityManager->getRepository(Artist::class)->findOneBy(['User_idUser' => $artistId]);
 
         if (!$artist) {
             return $this->json([
                 'error' => true,
-                'message' => "L'artiste avec l'identifiant '$artistId' n'existe pas."
+                'message' => "vous devez etre un artiste pour creer un albums "
             ], 404); // HTTP 404 Not Found
         }
+        // Check image
+
+        $coverBase64 = $requestData['cover'];
+        $coverData = base64_decode($coverBase64);
+        // Check if the decoding was successful
+            if ($coverData === false || !$this->imageUtils-> isValidImage($coverData)) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide.",
+                ]);
+            } 
 
         // Create a new Album entity
         $album = new Album();
         $album->
-            ->setNom($requestData['nom'])
-            ->setCateg($requestData['categ'])
+             setNom($requestData['nom'])
+            ->setCateg($stringCateg)
             ->setCover($requestData['cover'])
             ->setYear($requestData['year'])
             ->setArtistUserIdUser($artist);
