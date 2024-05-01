@@ -30,7 +30,7 @@ class ArtistController extends AbstractController
     }
 
     #[Route('/artists', name: 'create_artist', methods: ['POST'])]
-    public function create(int $currentPage = 1 ,Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         // Check if a user is authenticated
         $user = $this->tokenUtils->checkToken($request);
@@ -103,7 +103,10 @@ class ArtistController extends AbstractController
     public function getArtists(int $currentPage = 1, Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         // Retrieve the current page number from the query parameters (default to 1 if not provided)
-
+        $user = $this->tokenUtils->checkToken($request);
+        if($user === false){
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+        }
 
         // Ensure currentPage is at least 1
         $currentPage = max(1, $currentPage);

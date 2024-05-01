@@ -29,7 +29,8 @@ class Album
 
     #[ORM\Column]
     private ?int $year = 2024;
-
+    #[ORM\Column]
+    private ?int $visibility = 1;
     #[ORM\ManyToOne(inversedBy: 'albums')]
     private ?Artist $artist_User_idUser = null;
 
@@ -46,6 +47,15 @@ class Album
         return $this->id;
     }
 
+    public function getVisibility(): ?int 
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(int $visibility): static 
+    {
+        $this->visibility = $visibility;
+    }
     public function getIdAlbum(): ?string
     {
         return $this->idAlbum;
