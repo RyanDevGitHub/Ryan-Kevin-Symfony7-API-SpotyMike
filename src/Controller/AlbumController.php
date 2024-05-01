@@ -9,8 +9,10 @@ use App\Controller\TokenVerifierService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use App\Service\ImageUtils;
+use App\Service\PageUtils;
 use App\Entity\Album;
 use App\Entity\Artist;
+
 
 
 
@@ -19,10 +21,12 @@ class AlbumController extends AbstractController
 {
     private TokenVerifierService $tokenUtils ;
     private ImageUtils $imageUtils;
+    private PageUtils $pageUtils;
     
-    public function __construct(EntityManagerInterface $entityManager, ImageUtils $imageUtils,TokenVerifierService $tokenUtils)
+    public function __construct(EntityManagerInterface $entityManager, ImageUtils $imageUtils,TokenVerifierService $tokenUtils, PageUtils $pageUtils)
     {
         $this->entityManager = $entityManager;
+        $this->pageUtils = $pageUtils;
         $this->repository = $entityManager->getRepository(Album::class);
         $this->tokenUtils = $tokenUtils;
         $this->imageUtils = $imageUtils;
@@ -30,16 +34,6 @@ class AlbumController extends AbstractController
 
 
     }
-    #[Route('/albums', name: 'get_albums', methods: ['GET'])]
-    public function getAlbums(): JsonResponse
-    {
-        
-
-        return $this->json([
-            'albums' => $albums,
-        ]);
-    }
-
     #[Route('/album/{id}', name: 'get_album_by_id', methods: ['GET'])]
     public function getAlbumById(int $id): JsonResponse
     {
@@ -139,7 +133,7 @@ class AlbumController extends AbstractController
         $album = new Album();
         $album->
              setNom($requestData['nom'])
-            ->setCateg($stringCateg)
+            ->setCateg($str)
             ->setCover($requestData['cover'])
             ->setYear($requestData['year'])
             ->setArtistUserIdUser($artist);
@@ -155,4 +149,40 @@ class AlbumController extends AbstractController
             'album' => $album->getId()
         ], 201); // HTTP 201 Created
     }
+    #[Route('/albums', name: 'get_albums', methods: ['GET'])]
+    public function getAlbums(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        
+        // token
+        $user = $this->tokenUtils->checkToken($request);
+        if($user === false){
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+        }
+        $requestData = json_decode($request->getContent(), true);
+        // pagination
+        if (!isset($requestData['pagination'])){
+            return $this->json($this->$pageUtils->sendPaginationError(), 400);
+        }
+        $currentPage = $requestData['pagination'];
+        $totalAlbums = $entityManager->getRepository(Album::class)->count([]);
+        if (isset($requestData['limite']))
+        {
+            $limite = $requestData['limite'];
+        }
+        else
+        {
+            $limite = 5;
+        }
+        $pageinfo = $this->$pageUtils->checkPagination($currentPage, $totalAlbums, $limite);
+        if($pageinfo = null){
+            return $this->json($this->$pageUtils->sendPaginationError(), 400);
+        }
+
+        // return data
+        
+        return $this->json([
+            'albums' => $albums,
+        ]);
+    }
+
 }

@@ -183,9 +183,13 @@ class Artist
         return $this->User_idUser ? $this->User_idUser->getId() : null;
     }
 
-    public function getUserName(): ?string
+    public function getFirstName(): ?string
     {
-        return $this->User_idUser ? $this->User_idUser->getUsername() : null;
+        return $this->User_idUser ? $this->User_idUser->getFirstname() : null;
+    }
+    public function getLastName(): ?string
+    {
+        return $this->User_idUser ? $this->User_idUser->getLastname() : null;
     }
 
   
@@ -205,13 +209,27 @@ class Artist
         return [
             'id' => $this->id,
             'user_id' => $this->getUserId(),
-            'username' => $this->getUserName(),
+            'firstname' => $this->getFirstName(),
+            'lastname' => $this->getLastName(),
             'fullname' => $this->fullname,
             'label' => $this->label,
             'description' => $this->description,
             'songs' => $this->songs->toArray(),
             'albums' => $this->albums->toArray(),
-            'created_at' => $this->createdAt ? $this->createdAt->format('Y-m-d H:i:s') : null,
+            'created_at' => $this->createdAt ? $this->createdAt->format('Y-m-d H:i:s') : '',
+            'avatar' => $this->avatar,
+        ];
+    }
+    public function miniSerializer(): array 
+    {
+        return[
+            'id' => $this->id,
+            'firstname' => $this->getFirstName(),
+            'lastname' => $this->getLastName(),
+            'label' => $this->label,
+            'date of birth' => $this->getUserDateOfBirth(),
+            'sex'=> $this->getUserSex(),
+            'created_at' => $this->createdAt ? $this->createdAt->format('Y-m-d H:i:s') : '',
             'avatar' => $this->avatar,
         ];
     }

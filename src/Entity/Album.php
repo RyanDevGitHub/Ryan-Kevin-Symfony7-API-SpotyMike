@@ -30,6 +30,11 @@ class Album
     private ?int $year = 2024;
     #[ORM\Column]
     private ?int $visibility = 1;
+
+    #[ORM\Column]
+    private ?Artist $featuring = null;
+    #[ORM\Column]
+    private ?dateTimeImmuable $createdAt = new Date
     #[ORM\ManyToOne(inversedBy: 'albums')]
     private ?Artist $artist_User_idUser = null;
 
@@ -144,5 +149,16 @@ class Album
         }
 
         return $this;
+    }
+    public function serializer(): array
+    {
+        return[
+            'id' => $this->id,
+            'nom' => $this->nom,
+            'categ'=> $this->categ,
+
+            'artist' => artist
+             
+        ]
     }
 }

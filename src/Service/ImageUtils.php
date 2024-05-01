@@ -23,5 +23,10 @@ class ImageUtils{
 
             // Return false for any other MIME type
             return false;
-        }
+        };
+    public function sendImageError(){
+        return [
+            
+        ]
+    }
 }
