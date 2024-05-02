@@ -9,6 +9,7 @@ class PageUtils{
         
 
         // Calculate total number of pages
+
         $maxPage = ceil($totalData / $limite);
         if ($currentPage < 1 || $currentPage > $maxPage) {
             return null;

@@ -6,6 +6,7 @@ use App\Entity\Artist;
 use App\Entity\User;
 use App\Service\UserUtils;
 use App\Service\ImageUtils;
+use App\Service\PageUtils;
 use App\Controller\TokenVerifierService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,13 +22,15 @@ class ArtistController extends AbstractController
 {
     private UserUtils $userUtils;
     private TokenVerifierService $tokenUtils;
+    private PageUtils $pageUtils;
     private ImageUtils $imageUtils;
 
-    public function __construct(UserUtils $userUtils, TokenVerifierService $tokenUtils, ImageUtils $imageUtils)
+    public function __construct(UserUtils $userUtils, TokenVerifierService $tokenUtils, ImageUtils $imageUtils, PageUtils $pageUtils)
     {
         $this->userUtils = $userUtils;
         $this->tokenUtils = $tokenUtils;
         $this->imageUtils = $imageUtils;
+        $this->pageUtils = $pageUtils;
     }
 
     #[Route('/artist', name: 'create_artist', methods: ['POST'])]
@@ -74,19 +77,9 @@ class ArtistController extends AbstractController
             ], 409);
         }
         // Validate the avatar field
-<<<<<<< HEAD
-        if(isset())
-        $coverBase64 = $requestData['avatar'];
-        $coverData = base64_decode($coverBase64);
-        // Check if the decoding was successful
-            if ($coverData === false || !$this->imageUtils-> isValidImage($coverData)) {
-                return $this->json($this->imageUtils->sendImageError(), 422);
-            } 
-=======
         if (isset($requestData['avatar'])) {
             $coverBase64 = $requestData['avatar'];
             $coverData = base64_decode($coverBase64);
->>>>>>> 25808f9c6ea0943c30c57b61ee835aef942f5af9
 
             // Check if the decoding was successful
             if ($coverData === false || !$this->imageUtils->isValidImage($coverData)) {
@@ -128,26 +121,34 @@ class ArtistController extends AbstractController
             'artist_id' => $artist->getId(),
         ]);
   }
-    #[Route('/artists/{currentPage}', name: 'get_artist', methods: ['GET'])]
-    public function getArtists(int $currentPage = 1, Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
+    #[Route('/artist', name: 'get_artist', methods: ['GET'])]
+    public function getArtists( Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
+        $requestData = $request->query->all();
+        
         // Retrieve the current page number from the query parameters (default to 1 if not provided)
         $user = $this->tokenUtils->checkToken($request);
         if($user === false){
             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
         }
-
+        if (!isset($requestData['currentPage'])) {
+            return $this->json($this->pageUtils->sendPaginationError(), 400);
+        }
+        $currentPage = $requestData['currentPage'];
+        $totalArtist = $entityManager->getRepository(Artist::class)->count([]);
+        if (isset($requestData['limite'])) {
+            $limite = $requestData['limite'];
+        } else {
+            $limite = 5;
+        }
+        $pageinfo = $this->pageUtils->checkPagination($currentPage, $totalArtist, $limite);
+        if ($pageinfo === null) {
+            return $this->json($this->pageUtils->sendPaginationError(), 400);
+        }
         // Ensure currentPage is at least 1
-        $currentPage = max(1, $currentPage);
-
-        // Define the number of artists per page
-        $pageSize = 1;
-
-        // Calculate the offset based on the current page
-        $offset = ($currentPage - 1) * $pageSize;
-
+        
         // Retrieve the artists for the current page
-        $artists = $entityManager->getRepository(Artist::class)->findBy([], null, $pageSize, $offset);
+        $artists = $entityManager->getRepository(Artist::class)->findBy([], null, $limite, $pageinfo[0]);
         $serializedArtists = [];
         // Serialize the artist data (example assuming you have a serializer method)
         foreach ($artists as $artist) {
@@ -160,19 +161,13 @@ class ArtistController extends AbstractController
         $totalPages = ceil($totalArtists / $pageSize);
 
         // Construct pagination information
-        $pagination = [
-            'currentPage' => $currentPage,
-            'pageSize' => $pageSize,
-            'totalPages' => $totalPages,
-            'totalArtists' => $totalArtists,
-        ];
 
         // Return the response with the artists and pagination details
         return $this->json([
             'error' => false,
             'message' => 'Information des artistes récupérés avec succès',
             'pagination' => $pagination,
-            'artists' => $serializedArtists,
+            'artists' => $pageinfo[1],
         ]);
     }
     #[Route('/artist/{fullname}', name: 'get_artist_by_fullname', methods: ['GET'])]
