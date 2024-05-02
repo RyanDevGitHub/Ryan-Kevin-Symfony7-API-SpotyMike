@@ -80,7 +80,7 @@ class Artist
     }
 
     // Setter for date_end
-    public function setDateEnd(?\DateTimeInterface $date_end): void
+    public function setDateEnd(?\DateTimeInterface $date_end): static
     {
         $this->date_end = $date_end;
     }
