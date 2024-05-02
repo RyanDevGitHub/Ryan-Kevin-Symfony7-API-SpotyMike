@@ -33,8 +33,10 @@ class Album
 
     #[ORM\Column]
     private ?Artist $featuring = null;
+
     #[ORM\Column]
-    private ?dateTimeImmuable $createdAt = new Date
+    private \DateTimeImmutable $createdAt;
+    
     #[ORM\ManyToOne(inversedBy: 'albums')]
     private ?Artist $artist_User_idUser = null;
 
@@ -44,6 +46,7 @@ class Album
     public function __construct()
     {
         $this->song_idSong = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -72,6 +75,10 @@ class Album
 
         return $this;
     }
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 
     public function getCateg(): ?string
     {
@@ -93,6 +100,18 @@ class Album
     public function setCover(string $cover): static
     {
         $this->cover = $cover;
+
+        return $this;
+    }
+
+    public function getFeaturing(): ?Artist
+    {
+        return $this->featuring;
+    }
+
+    public function setFeaturing(?Artist $featuring): static
+    {
+        $this->featuring = $featuring;
 
         return $this;
     }
@@ -150,15 +169,18 @@ class Album
 
         return $this;
     }
-    public function serializer(): array
-    {
-        return[
-            'id' => $this->id,
-            'nom' => $this->nom,
-            'categ'=> $this->categ,
 
-            'artist' => artist
-             
-        ]
+    public function serialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'year' => $this->year,
+            'nom' => $this->nom,
+            'categ' => $this->categ,
+            'cover' => $this->cover,
+            'featuring' => $this->featuring ? $this->featuring->serialize() : '',
+            'artist' => $this->artist ? $this->artist->serialize() : '',
+            // Add other properties as needed
+        ];
     }
 }

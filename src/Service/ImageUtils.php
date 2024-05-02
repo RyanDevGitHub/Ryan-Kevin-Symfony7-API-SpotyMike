@@ -23,10 +23,11 @@ class ImageUtils{
 
             // Return false for any other MIME type
             return false;
-        };
+        }
     public function sendImageError(){
         return [
-            
-        ]
+                'error' => true,
+                'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide."
+        ];
     }
 }

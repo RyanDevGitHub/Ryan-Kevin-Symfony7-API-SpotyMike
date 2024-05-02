@@ -123,10 +123,7 @@ class AlbumController extends AbstractController
         $coverData = base64_decode($coverBase64);
         // Check if the decoding was successful
             if ($coverData === false || !$this->imageUtils-> isValidImage($coverData)) {
-                return $this->json([
-                    'error' => true,
-                    'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide.",
-                ]);
+                return $this->json($this->imageUtils->sendImageError(), 422);
             } 
 
         // Create a new Album entity

@@ -4,7 +4,7 @@
 namespace App\Service;
 
 
-class PaginationUtils{
+class PageUtils{
     public function checkPagination(int $currentPage, int $totalData, int $limite){
         
 
