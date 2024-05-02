@@ -152,41 +152,35 @@ class LoginController extends AbstractController
     
     
     // use Symfony\Component\HttpFoundation\Request;
-    #[Route('/login2', name: 'app_login_post', methods: ['POST', 'PUT'])]
+
+    #[Route('/login', name: 'app_login_post', methods: ['POST', 'PUT'])]
     public function login(Request $request, JWTTokenManagerInterface $JWTManager, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
-        $requestData = json_decode($request->getContent(), true);
-    
-        if (empty($requestData['password']) || empty($requestData['email'])) {
+
+        if (empty($request->get('password')) || empty($request->get('email'))) {
             return $this->json([
-                'error' => true,
+                'error' => (true),
                 'message' => "Email/password manquants.",
             ],400);
         }
-    
-        $email = $requestData['email'];
-        $password = $requestData['password'];
-    
-        if (!$this->userUtils->isValidEmail($email)) {
+        if (!$this->userUtils->isValidEmail($request->get('email'))) {
             return $this->json([
-                'error' => true,
+                'error' => (true),
                 'message' => "Le format de l'email est invalide.",
             ],400);
         }
-    
-        if (!$this->userUtils->isValidPassword($password)) {
+
+        if (!$this->userUtils->isValidPassword($request->get('password'))) {
             return $this->json([
-                'error' => true,
+                'error' => (true),
                 'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
             ],400);
         }
-    
         /** @var User|null $user */
-        $user = $this->repository->findOneBy(["email" => $email]);
-    
+        $user = $this->repository->findOneBy(["email" => $request->get('email')]);
         if (!$user) {
             return $this->json([
-                'error' => true,
+                'error' => (true),
                 'message' => "Aucun compte existe avec cette adresse email.",
             ]);
         }
@@ -204,14 +198,16 @@ class LoginController extends AbstractController
                 ],429);
             }
         }
-    
         if ($this->userUtils->IsDisableAccount($user)) {
             return $this->json([
-                'error' => true,
+                'error' => (true),
                 'message' => "Le compte n'est plus actif ou est suspendu.",
             ],403);
         }
-    
+
+        $parameters = json_decode($request->getContent(), true);
+
+
         return $this->json([
             'error' => false,
             'message' => "L'utilisateur a été authentifié succès",
