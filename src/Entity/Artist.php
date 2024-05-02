@@ -68,7 +68,28 @@ class Artist
     {
         return $this->User_idUser;
     }
+    // Setter for date_begin
+    public function setDateBegin(?\DateTimeInterface $date_begin): void
+    {
+        $this->date_begin = $date_begin;
+    }
+    // Getter for date_begin
+    public function getDateBegin(): ?\DateTimeInterface
+    {
+        return $this->date_begin;
+    }
 
+    // Setter for date_end
+    public function setDateEnd(?\DateTimeInterface $date_end): void
+    {
+        $this->date_end = $date_end;
+    }
+
+    // Getter for date_end
+    public function getDateEnd(): ?\DateTimeInterface
+    {
+        return $this->date_end;
+    }
     public function setUserIdUser(User $User_idUser): static
     {
         $this->User_idUser = $User_idUser;

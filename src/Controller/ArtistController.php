@@ -94,13 +94,13 @@ class ArtistController extends AbstractController
 
         // Create a new Artist entity
         $artist = new Artist();
-        $artist->setFullname($requestData['fullname'])
-            ->setLabel($requestData['label'])
-            ->setAvatar($avatarBase64) // Store
-            ->setCreatedAt(new \DateTimeImmutable())
-            ->setDateBegin(new \DateTimeImmutable())
-            ->setDateEnd(new \DateTimeImmutable())
-            ->setUserIdUser($userEntity);
+        $artist->setFullname($requestData['fullname']);
+        $artist->setLabel($requestData['label']);
+        $artist->setAvatar($avatarBase64); // Store
+        $artist->setCreatedAt(new \DateTimeImmutable());
+        $artist->setDateBegin(new \DateTimeImmutable());
+        $artist->setDateEnd(new \DateTimeImmutable());
+        $artist->setUserIdUser($userEntity);
 
         // Set optional description field if provided
         if (isset($requestData['description'])) {
@@ -117,13 +117,13 @@ class ArtistController extends AbstractController
             'message' => "Votre compte artiste a été créé avec succès. Bienvenue dans notre communauté d'artistes ! ",
             'artist_id' => $artist->getId(),
         ]);
-  }
+    }
     #[Route('/artists/{currentPage}', name: 'get_artist', methods: ['GET'])]
     public function getArtists(int $currentPage = 1, Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         // Retrieve the current page number from the query parameters (default to 1 if not provided)
         $user = $this->tokenUtils->checkToken($request);
-        if($user === false){
+        if ($user === false) {
             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
         }
 

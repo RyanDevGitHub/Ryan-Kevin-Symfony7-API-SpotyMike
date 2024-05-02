@@ -116,7 +116,7 @@ class Album
         return $this;
     }
 
-    public function getYear(): ?int
+    public function (): ?int
     {
         return $this->year;
     }

@@ -36,7 +36,7 @@ class AlbumController extends AbstractController
         $this->tokenUtils = $tokenUtils;
         $this->imageUtils = $imageUtils;
     }
-    #[Route('/alb/{id}', name: 'get_album_by_id', methods: ['GET'])]
+    #[Route('/album/{id}', name: 'get_album_by_id', methods: ['GET'])]
     public function getAlbumById(int $id): JsonResponse
     {
         // Dummy data for demonstration
@@ -52,7 +52,7 @@ class AlbumController extends AbstractController
         ]);
     }
 
-    #[Route('/albums', name: 'create_album', methods: ['POST'])]
+    #[Route('/album', name: 'create_album', methods: ['POST'])]
     public function createAlbum(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $user = $this->tokenUtils->checkToken($request);
@@ -68,7 +68,7 @@ class AlbumController extends AbstractController
             if (!isset($requestData[$field])) {
                 return $this->json([
                     'error' => true,
-                    'message' => "les parmaetre soumins son invalide veillez verifier les donnees soumise."
+                    'message' => "Les paramètres fournis sont invalides. Veuillez vérifier les données soumises."
                 ], 400); // HTTP 400 Bad Request
             }
         }
@@ -78,7 +78,7 @@ class AlbumController extends AbstractController
         if ($visibility !== 0 && $visibility !== 1) {
             return $this->json([
                 'error' => true,
-                'message' => "la valeur de la champ de visibility est invalide. les valeurs autoriser sont 0 pour invisible 1 visible"
+                'message' => "la valeur du champ de visibility est invalide. Les valeurs autorisées sont 0 pour invisible,1 pour visible."
             ], 400);
         }
         $validCategories = ['RNB', 'RAP'];
@@ -90,7 +90,7 @@ class AlbumController extends AbstractController
             if (!in_array($category, $validCategories)) {
                 return $this->json([
                     'error' => true,
-                    'message' => "Les catégories ciblées sont invalides."
+                    'message' => "Les catégorie ciblée sont invalide."
                 ], 400); // HTTP 400 Bad Request
             }
         }
@@ -105,7 +105,7 @@ class AlbumController extends AbstractController
         if ($existingAlbums  !== null) {
             return $this->json([
                 'error' => true,
-                'message' => "ce titre est deja pris veillez en choisir un autre."
+                'message' => "Ce titre est déjà pris. Veuillez en choisir un autre."
             ], 409); // HTTP 409 Conflict
         }
         // Retrieve the artist based on the provided artist_id
@@ -133,7 +133,7 @@ class AlbumController extends AbstractController
         $alb->setNom($requestData['nom'])
             ->setCateg($stringCateg)
             ->setCover($requestData['cover'])
-            ->setannee($requestData['annee'])
+            ->setYear($requestData['annee'])
             ->setArtistUserIdUser($artist);
 
         // Persist the alb entity to the database
@@ -154,7 +154,7 @@ class AlbumController extends AbstractController
         return $this->json([
             'error' => false,
             'message' => 'Album créé avec succès.',
-            'alb' => $alb->getId()
+            'iD' => $alb->getId()
         ], 201); // HTTP 201 Created
     }
     #[Route('/albums', name: 'get_albums', methods: ['GET'])]
