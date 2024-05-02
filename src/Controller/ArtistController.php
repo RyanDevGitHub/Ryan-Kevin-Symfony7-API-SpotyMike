@@ -97,13 +97,13 @@ class ArtistController extends AbstractController
 
         // Create a new Artist entity
         $artist = new Artist();
-        $artist->setFullname($requestData['fullname'])
-            ->setLabel($requestData['label'])
-            ->setAvatar($avatarBase64) // Store
-            ->setCreatedAt(new \DateTimeImmutable())
-            ->setDateBegin(new \DateTimeImmutable())
-            ->setDateEnd(new \DateTimeImmutable())
-            ->setUserIdUser($userEntity);
+        $artist->setFullname($requestData['fullname']);
+        $artist->setLabel($requestData['label']);
+        $artist->setAvatar($avatarBase64); // Store
+        $artist->setCreatedAt(new \DateTimeImmutable());
+        $artist->setDateBegin(new \DateTimeImmutable());
+        $artist->setDateEnd(new \DateTimeImmutable());
+        $artist->setUserIdUser($userEntity);
 
         // Set optional description field if provided
         if (isset($requestData['description'])) {
@@ -128,7 +128,7 @@ class ArtistController extends AbstractController
         
         // Retrieve the current page number from the query parameters (default to 1 if not provided)
         $user = $this->tokenUtils->checkToken($request);
-        if($user === false){
+        if ($user === false) {
             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
         }
         if (!isset($requestData['currentPage'])) {
