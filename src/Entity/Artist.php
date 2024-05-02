@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ArtistRepository::class)]
+
 class Artist
 {
     #[ORM\Id]
@@ -16,9 +17,9 @@ class Artist
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $User_idUser = null;
+    #[ORM\OneToOne(targetEntity: "App\Entity\User", inversedBy: "artist")]
+    #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id", nullable: false)]
+    private  $User_idUser;
 
     #[ORM\Column(length: 90)]
     private ?string $fullname = null;
@@ -29,23 +30,18 @@ class Artist
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+
     #[ORM\ManyToMany(targetEntity: Song::class, mappedBy: 'Artist_idUser')]
     private Collection $songs;
 
     #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_User_idUser')]
     private Collection $albums;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date_begin = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $date_end = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?int $active = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $created_at = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
     {
@@ -69,7 +65,15 @@ class Artist
 
         return $this;
     }
-
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+    public function setAvatar(string $avatar): static
+    {
+        $this->avatar = $avatar;
+        return $this;
+    }
     public function getFullname(): ?string
     {
         return $this->fullname;
@@ -163,66 +167,54 @@ class Artist
         return $this;
     }
 
-    public function serializer($children = false)
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+    public function getUserId(): ?int
+    {
+        return $this->User_idUser ? $this->User_idUser->getId() : null;
+    }
+
+    public function getUserName(): ?string
+    {
+        return $this->User_idUser ? $this->User_idUser->getUsername() : null;
+    }
+
+
+
+    public function getUserDateOfBirth(): ?\DateTimeInterface
+    {
+        return $this->User_idUser ? $this->User_idUser->getDateOfBirth() : null;
+    }
+
+
+
+    public function getUserSex(): ?string
+    {
+        return $this->User_idUser ? $this->User_idUser->getSex() : null;
+    }
+
+    public function serializer(): array
     {
         return [
-            "fullname" => $this->getFullname() ?: "",
-            "label" => $this->getLabel() ?: "",
-            "description" => $this->getDescription() ?: "",
-            "date_begin" => $this->getDateBegin() ?: "",
-            "date_end" => $this->getDateEnd() ?: "",
-            "active" => $this->getActive() ?: "",
-            "created_At" => $this->getCreatedAt() ?: "",
-            // "albums" => $this->getAlbums(),
-            "songs" => $this->getSongs(),
+            'id' => $this->id,
+            'user_id' => $this->getUserId(),
+            'username' => $this->getUserName(),
+            'fullname' => $this->fullname,
+            'label' => $this->label,
+            'description' => $this->description,
+            'songs' => $this->songs->toArray(),
+            'albums' => $this->albums->toArray(),
+            'created_at' => $this->createdAt ? $this->createdAt->format('Y-m-d H:i:s') : null,
+            'avatar' => $this->avatar,
         ];
-    }
-
-    public function getDateBegin(): ?\DateTimeInterface
-    {
-        return $this->date_begin;
-    }
-
-    public function setDateBegin(\DateTimeInterface $date_begin): static
-    {
-        $this->date_begin = $date_begin;
-
-        return $this;
-    }
-
-    public function getDateEnd(): ?\DateTimeInterface
-    {
-        return $this->date_end;
-    }
-
-    public function setDateEnd(?\DateTimeInterface $date_end): static
-    {
-        $this->date_end = $date_end;
-
-        return $this;
-    }
-
-    public function getActive(): ?int
-    {
-        return $this->active;
-    }
-
-    public function setActive(?int $active): static
-    {
-        $this->active = $active;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->created_at;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $created_at): static
-    {
-        $this->created_at = $created_at;
-
-        return $this;
     }
 }
