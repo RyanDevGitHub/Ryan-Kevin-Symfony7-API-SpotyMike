@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ArtistRepository::class)]
+
 class Artist
 {
     #[ORM\Id]
@@ -16,18 +17,19 @@ class Artist
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $User_idUser = null;
+    #[ORM\OneToOne(targetEntity:"App\Entity\User", inversedBy:"artist")]
+    #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id", nullable:false)]
+    private  $User_idUser;
 
     #[ORM\Column(length: 90)]
     private ?string $fullname = null;
-
+    
     #[ORM\Column(length: 90)]
     private ?string $label = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
+
 
     #[ORM\ManyToMany(targetEntity: Song::class, mappedBy: 'Artist_idUser')]
     private Collection $songs;
@@ -44,8 +46,12 @@ class Artist
     #[ORM\Column(nullable: true)]
     private ?int $active = null;
 
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $created_at = null;
+    private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
     {
@@ -69,7 +75,15 @@ class Artist
 
         return $this;
     }
-
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+    public function setAvatar(string $avatar): static
+    {
+        $this->avatar = $avatar;
+        return $this;
+    }
     public function getFullname(): ?string
     {
         return $this->fullname;
@@ -163,18 +177,57 @@ class Artist
         return $this;
     }
 
-    public function serializer($children = false)
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+    public function getUserId(): ?int
+    {
+        return $this->User_idUser ? $this->User_idUser->getId() : null;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->User_idUser ? $this->User_idUser->getFirstname() : null;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->User_idUser ? $this->User_idUser->getLastname() : null;
+    }
+  
+    public function getUserDateOfBirth(): ?\DateTimeInterface
+    {
+        return $this->User_idUser ? $this->User_idUser->getDateOfBirth() : null;
+    }
+
+  
+    public function getUserSex(): ?string
+    {
+        return $this->User_idUser ? $this->User_idUser->getSex() : null;
+    }
+
+    public function serializer(): array
     {
         return [
             "fullname" => $this->getFullname() ?: "",
+            "firstname" => $this->getFirstname()?: "",
+            "lastname" => $this->getLastname()?: "",
             "label" => $this->getLabel() ?: "",
             "description" => $this->getDescription() ?: "",
             "date_begin" => $this->getDateBegin()?: "",
             "date_end" => $this->getDateEnd()?: "",
             "active" => $this->getActive()?: "",
             "created_At" => $this->getCreatedAt()?: "",
-            "albums" => $this->getAlbums(),
-            "songs" => $this->getSongs(),
+            "albums" => $this->getAlbums() ?: "",
+            "songs" => $this->getSongs()?: "",
         ];
     }
 
@@ -214,15 +267,5 @@ class Artist
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->created_at;
-    }
 
-    public function setCreatedAt(\DateTimeInterface $created_at): static
-    {
-        $this->created_at = $created_at;
-
-        return $this;
-    }
 }
