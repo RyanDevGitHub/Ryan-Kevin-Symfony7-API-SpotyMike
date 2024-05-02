@@ -98,7 +98,7 @@ class ArtistController extends AbstractController
             'message' => "Votre compte artiste a été créé avec succès. Bienvenue dans notre communauté d'artistes ! ",
             'artist' => $artist->getId(),
         ]);
-    }
+  }
     #[Route('/artists/{currentPage}', name: 'get_artist', methods: ['GET'])]
     public function getArtists(int $currentPage = 1, Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {

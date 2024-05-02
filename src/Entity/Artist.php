@@ -193,15 +193,15 @@ class Artist
     }
 
   
-    public function getUserDateOfBirth(): ?\DateTimeInterface
+    public function getUserDateBirth(): ?\DateTimeInterface
     {
-        return $this->User_idUser ? $this->User_idUser->getDateOfBirth() : null;
+        return $this->User_idUser ? $this->User_idUser->getDateBirth() : null;
     }
 
   
-    public function getUserSex(): ?string
+    public function getUserSexe(): ?string
     {
-        return $this->User_idUser ? $this->User_idUser->getSex() : null;
+        return $this->User_idUser ? $this->User_idUser->getSexe() : null;
     }
 
     public function serializer(): array
@@ -227,8 +227,8 @@ class Artist
             'firstname' => $this->getFirstName(),
             'lastname' => $this->getLastName(),
             'label' => $this->label,
-            'date of birth' => $this->getUserDateOfBirth(),
-            'sex'=> $this->getUserSex(),
+            'date of birth' => $this->getUserDateBirth(),
+            'sex'=> $this->getUserSexe(),
             'created_at' => $this->createdAt ? $this->createdAt->format('Y-m-d H:i:s') : '',
             'avatar' => $this->avatar,
         ];

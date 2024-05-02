@@ -31,7 +31,7 @@ class Album
     #[ORM\Column]
     private ?int $visibility = 1;
 
-    #[ORM\Column]
+    #[ORM\ManyToOne(inversedBy: 'albums')]
     private ?Artist $featuring = null;
 
     #[ORM\Column]
@@ -109,7 +109,7 @@ class Album
         return $this->featuring;
     }
 
-    public function setFeaturing(?Artist $featuring): static
+    public function setFeaturing(Artist $featuring): static
     {
         $this->featuring = $featuring;
 
@@ -170,7 +170,7 @@ class Album
         return $this;
     }
 
-    public function serialize(): array
+    public function serializer(): array
     {
         return [
             'id' => $this->id,
@@ -178,8 +178,8 @@ class Album
             'nom' => $this->nom,
             'categ' => $this->categ,
             'cover' => $this->cover,
-            'featuring' => $this->featuring ? $this->featuring->serialize() : '',
-            'artist' => $this->artist ? $this->artist->serialize() : '',
+            'featuring' => $this->featuring ? $this->featuring->minSerializer() : null,
+            'artist' => $this->artist ? $this->artist->miniSerializer() : null,
             // Add other properties as needed
         ];
     }

@@ -9,15 +9,21 @@ class PageUtils{
         
 
         // Calculate total number of pages
-        $maxPage = ceil($totalData / $pageSize);
-        if ($currentPage > 1 || $currentPage < $maxPage) {
+        $maxPage = ceil($totalData / $limite);
+        if ($currentPage < 1 || $currentPage > $maxPage) {
             return null;
         }
+
         $offset = ($currentPage - 1) * $limite;
 
         // Calculate total number of pages
-        $maxPage = ceil($totalData / $limite);
-        return [$offset, $maxPage];
+        $pagination = [
+            'currentPage' => $currentPage,
+            'pageSize' => $limite,
+            'totalPages' => $maxPage,
+            'total' => $totalData,
+        ];
+        return [$offset, $pagination];
     }
 
     public function sendPaginationError(){

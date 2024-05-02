@@ -130,12 +130,22 @@ class AlbumController extends AbstractController
         $album = new Album();
         $album->
              setNom($requestData['nom'])
-            ->setCateg($str)
+            ->setCateg($stringCateg)
             ->setCover($requestData['cover'])
             ->setYear($requestData['year'])
             ->setArtistUserIdUser($artist);
 
         // Persist the album entity to the database
+        if(isset($requestData['featuring'])){
+            $feat = $entityManager->getRepository(Artist::class)->findOneBy(['id' => $requestData['featuring']]);
+            if(!$feat){
+                return $this->json([
+                    'error' => true,
+                    'message' => "vous devez entrer l'id d'un artiste existant "
+                ], 404);
+            }
+            $album->setFeaturing($feat);
+        }
         $entityManager->persist($album);
         $entityManager->flush();
 
@@ -158,7 +168,7 @@ class AlbumController extends AbstractController
         $requestData = json_decode($request->getContent(), true);
         // pagination
         if (!isset($requestData['pagination'])){
-            return $this->json($this->$pageUtils->sendPaginationError(), 400);
+            return $this->json($this->pageUtils->sendPaginationError(), 400);
         }
         $currentPage = $requestData['pagination'];
         $totalAlbums = $entityManager->getRepository(Album::class)->count([]);
@@ -170,16 +180,22 @@ class AlbumController extends AbstractController
         {
             $limite = 5;
         }
-        $pageinfo = $this->$pageUtils->checkPagination($currentPage, $totalAlbums, $limite);
-        if($pageinfo = null){
-            return $this->json($this->$pageUtils->sendPaginationError(), 400);
+        $pageinfo = $this->pageUtils->checkPagination($currentPage, $totalAlbums, $limite);
+        if($pageinfo === null){
+            return $this->json($this->pageUtils->sendPaginationError(), 400);
         }
-
         // return data
+        $albums = $entityManager->getRepository(Artist::class)->findBy([], null, $limite, $pageinfo[0]);
+        $serializedAlbums = [];
+        foreach ($albums as $album) {
+            $serializedAlbums[] = $album->serializer();
+        }
         
         return $this->json([
+            'error' => false,
             'albums' => $albums,
-        ]);
+            'pagination' => $pageinfo[1]
+        ], 200);
     }
 
 }
