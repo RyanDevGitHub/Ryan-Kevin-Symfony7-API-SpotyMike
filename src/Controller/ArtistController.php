@@ -29,7 +29,7 @@ class ArtistController extends AbstractController
         $this->imageUtils = $imageUtils;
     }
 
-    #[Route('/artists', name: 'create_artist', methods: ['POST'])]
+    #[Route('/artist', name: 'create_artist', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         // Check if a user is authenticated

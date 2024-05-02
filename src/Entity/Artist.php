@@ -217,4 +217,39 @@ class Artist
             'avatar' => $this->avatar,
         ];
     }
+    public function getDateBegin(): ?\DateTimeInterface
+    {
+        return $this->date_begin;
+    }
+
+    public function setDateBegin(\DateTimeInterface $date_begin): static
+    {
+        $this->date_begin = $date_begin;
+
+        return $this;
+    }
+
+    public function getDateEnd(): ?\DateTimeInterface
+    {
+        return $this->date_end;
+    }
+
+    public function setDateEnd(?\DateTimeInterface $date_end): static
+    {
+        $this->date_end = $date_end;
+
+        return $this;
+    }
+
+    public function getActive(): ?int
+    {
+        return $this->active;
+    }
+
+    public function setActive(?int $active): static
+    {
+        $this->active = $active;
+
+        return $this;
+    }
 }
