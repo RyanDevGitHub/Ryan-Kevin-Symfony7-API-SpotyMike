@@ -29,7 +29,8 @@ class LoginController extends AbstractController
         $this->repository = $entityManager->getRepository(User::class);
         $this->userUtils = $userUtils;
     }
-
+    
+    
     #[Route('/register', name: 'app_register_post', methods: ['POST', 'PUT'])]
     public function create(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
@@ -64,16 +65,17 @@ class LoginController extends AbstractController
                 'message' => "Des champs obligatoires sont manquants.",
             ],400);
         }
-
-        if (!$this->userUtils->isValidEmail($request->get('email'))) {
+    
+        if (!$this->userUtils->isValidEmail($data['email'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le format de l'email est invalide.",
             ],400);
         }
-        if (!$this->userUtils->isValidPassword($request->get('password'))) {
+    
+        if (!$this->userUtils->isValidPassword($data['password'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
             ],400);
         }   
@@ -83,20 +85,24 @@ class LoginController extends AbstractController
                 'message' => "Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA.",
             ],400);
         }
-        if (!$this->userUtils->isValidAge($request->get('dateBirth'))) {
+    
+        if (!$this->userUtils->isValidAge($data['dateBirth'])) {
             return $this->json([
                 'error' => (true),
                 'message' => "L'utilisateur doit avoir au moins 12 ans.",
             ],400);
         }
-        if (!is_null($request->get('tel')) && !$this->userUtils->isValidPhoneNumber($request->get('tel'))) {
+    
+        $tel = $data['tel'] ?? null;
+        if (!is_null($tel) && !$this->userUtils->isValidPhoneNumber($tel)) {
             return $this->json([
                 'error' => (true),
                 'message' => "Le format du numéro de téléphone est invalide.",
             ],400);
         }
-
-        if (!is_null($request->get('sexe')) && !$this->userUtils->isValidSex($request->get('sexe'))) {
+    
+        $sexe = $data['sexe'] ?? null;
+        if (!is_null($sexe) && !$this->userUtils->isValidSex($sexe)) {
             return $this->json([
                 'error' => (true),
                 'message' => "La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme.",
@@ -104,10 +110,10 @@ class LoginController extends AbstractController
         }else{
             $user->setSexe(1);
         }
-
-        if (!$this->userUtils->IsAvailableEmail($request->get('email'))) {
+    
+        if (!$this->userUtils->IsAvailableEmail($data['email'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Cet email est déjà utilisé par un autre compte.",
             ],409);
         }
@@ -129,49 +135,58 @@ class LoginController extends AbstractController
         if (!is_null($request->get('tel'))) {
             $user->setTel($request->get('tel'));
         }
-        if (!is_null($request->get('sexe'))) {
-            $user->setSexe($request->get('sexe'));
+        if (!is_null($sexe)) {
+            $user->setSexe($sexe);
         }
         $user->setDisable(0);
+    
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-
+    
         return $this->json([
             'error' => (false),
             'message' => "l'utilisateur a bien été créé avec succès",
             'user' => $user->serializerRegister(),
         ],201);
     }
-
+    
+    
     // use Symfony\Component\HttpFoundation\Request;
-    #[Route('/login', name: 'app_login_post', methods: ['POST', 'PUT'])]
+    #[Route('/login2', name: 'app_login_post', methods: ['POST', 'PUT'])]
     public function login(Request $request, JWTTokenManagerInterface $JWTManager, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
-
-        if (empty($request->get('password')) || empty($request->get('email'))) {
+        $requestData = json_decode($request->getContent(), true);
+    
+        if (empty($requestData['password']) || empty($requestData['email'])) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Email/password manquants.",
             ],400);
         }
-        if (!$this->userUtils->isValidEmail($request->get('email'))) {
+    
+        $email = $requestData['email'];
+        $password = $requestData['password'];
+    
+        if (!$this->userUtils->isValidEmail($email)) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le format de l'email est invalide.",
             ],400);
         }
-
-        if (!$this->userUtils->isValidPassword($request->get('password'))) {
+    
+        if (!$this->userUtils->isValidPassword($password)) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
             ],400);
         }
+    
         /** @var User|null $user */
-        $user = $this->repository->findOneBy(["email" => $request->get('email')]);
+        $user = $this->repository->findOneBy(["email" => $email]);
+    
         if (!$user) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Aucun compte existe avec cette adresse email.",
             ]);
         }
@@ -189,16 +204,14 @@ class LoginController extends AbstractController
                 ],429);
             }
         }
+    
         if ($this->userUtils->IsDisableAccount($user)) {
             return $this->json([
-                'error' => (true),
+                'error' => true,
                 'message' => "Le compte n'est plus actif ou est suspendu.",
             ],403);
         }
-
-        $parameters = json_decode($request->getContent(), true);
-
-
+    
         return $this->json([
             'error' => false,
             'message' => "L'utilisateur a été authentifié succès",
