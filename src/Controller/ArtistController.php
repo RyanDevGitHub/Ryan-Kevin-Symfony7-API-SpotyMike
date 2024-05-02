@@ -72,6 +72,7 @@ class ArtistController extends AbstractController
             ],403);
         }
         // Validate the avatar field
+        if(isset())
         $coverBase64 = $requestData['avatar'];
         $coverData = base64_decode($coverBase64);
         // Check if the decoding was successful
