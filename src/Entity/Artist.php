@@ -197,73 +197,50 @@ class Artist
     {
         return $this->User_idUser ? $this->User_idUser->getFirstname() : null;
     }
-
     public function getLastName(): ?string
     {
         return $this->User_idUser ? $this->User_idUser->getLastname() : null;
     }
 
-    public function getUserDateOfBirth(): ?\DateTimeInterface
+
+    public function getUserDateBirth(): ?\DateTimeInterface
     {
-        return $this->User_idUser ? $this->User_idUser->getDateOfBirth() : null;
+        return $this->User_idUser ? $this->User_idUser->getDateBirth() : null;
     }
 
 
-    public function getUserSex(): ?string
+    public function getUserSexe(): ?string
     {
-        return $this->User_idUser ? $this->User_idUser->getSex() : null;
+        return $this->User_idUser ? $this->User_idUser->getSexe() : null;
     }
 
     public function serializer(): array
     {
         return [
-            "fullname" => $this->getFullname() ?: "",
-            "firstname" => $this->getFirstname() ?: "",
-            "lastname" => $this->getLastname() ?: "",
-            "label" => $this->getLabel() ?: "",
-            "description" => $this->getDescription() ?: "",
-            "date_begin" => $this->getDateBegin() ?: "",
-            "date_end" => $this->getDateEnd() ?: "",
-            "active" => $this->getActive() ?: "",
-            "created_At" => $this->getCreatedAt() ?: "",
-            "albums" => $this->getAlbums() ?: "",
-            "songs" => $this->getSongs() ?: "",
+            'id' => $this->id,
+            'user_id' => $this->getUserId(),
+            'firstname' => $this->getFirstName(),
+            'lastname' => $this->getLastName(),
+            'fullname' => $this->fullname,
+            'label' => $this->label,
+            'description' => $this->description,
+            'songs' => $this->songs->toArray(),
+            'albums' => $this->albums->toArray(),
+            'created_at' => $this->createdAt ? $this->createdAt->format('Y-m-d H:i:s') : '',
+            'avatar' => $this->avatar,
         ];
     }
-
-    public function getDateBegin(): ?\DateTimeInterface
+    public function miniSerializer(): array
     {
-        return $this->date_begin;
-    }
-
-    public function setDateBegin(\DateTimeInterface $date_begin): static
-    {
-        $this->date_begin = $date_begin;
-
-        return $this;
-    }
-
-    public function getDateEnd(): ?\DateTimeInterface
-    {
-        return $this->date_end;
-    }
-
-    public function setDateEnd(?\DateTimeInterface $date_end): static
-    {
-        $this->date_end = $date_end;
-
-        return $this;
-    }
-
-    public function getActive(): ?int
-    {
-        return $this->active;
-    }
-
-    public function setActive(?int $active): static
-    {
-        $this->active = $active;
-
-        return $this;
+        return [
+            'id' => $this->id,
+            'firstname' => $this->getFirstName(),
+            'lastname' => $this->getLastName(),
+            'label' => $this->label,
+            'date of birth' => $this->getUserDateBirth(),
+            'sex' => $this->getUserSexe(),
+            'created_at' => $this->createdAt ? $this->createdAt->format('Y-m-d H:i:s') : '',
+            'avatar' => $this->avatar,
+        ];
     }
 }

@@ -15,8 +15,7 @@ class Album
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 90)]
-    private ?string $idAlbum = null;
+
 
     #[ORM\Column(length: 90)]
     private ?string $nom = null;
@@ -29,7 +28,15 @@ class Album
 
     #[ORM\Column]
     private ?int $year = 2024;
+    #[ORM\Column]
+    private ?int $visibility = 1;
 
+    #[ORM\ManyToOne(inversedBy: 'albums')]
+    private ?Artist $featuring = null;
+
+    #[ORM\Column]
+    private \DateTimeImmutable $createdAt;
+    
     #[ORM\ManyToOne(inversedBy: 'albums')]
     private ?Artist $artist_User_idUser = null;
 
@@ -39,6 +46,7 @@ class Album
     public function __construct()
     {
         $this->song_idSong = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -46,16 +54,14 @@ class Album
         return $this->id;
     }
 
-    public function getIdAlbum(): ?string
+    public function getVisibility(): ?int 
     {
-        return $this->idAlbum;
+        return $this->visibility;
     }
 
-    public function setIdAlbum(string $idAlbum): static
+    public function setVisibility(int $visibility): static 
     {
-        $this->idAlbum = $idAlbum;
-
-        return $this;
+        $this->visibility = $visibility;
     }
 
     public function getNom(): ?string
@@ -68,6 +74,10 @@ class Album
         $this->nom = $nom;
 
         return $this;
+    }
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
     }
 
     public function getCateg(): ?string
@@ -90,6 +100,18 @@ class Album
     public function setCover(string $cover): static
     {
         $this->cover = $cover;
+
+        return $this;
+    }
+
+    public function getFeaturing(): ?Artist
+    {
+        return $this->featuring;
+    }
+
+    public function setFeaturing(Artist $featuring): static
+    {
+        $this->featuring = $featuring;
 
         return $this;
     }
@@ -146,5 +168,19 @@ class Album
         }
 
         return $this;
+    }
+
+    public function serializer(): array
+    {
+        return [
+            'id' => $this->id,
+            'year' => $this->year,
+            'nom' => $this->nom,
+            'categ' => $this->categ,
+            'cover' => $this->cover,
+            'featuring' => $this->featuring ? $this->featuring->minSerializer() : null,
+            'artist' => $this->artist ? $this->artist->miniSerializer() : null,
+            // Add other properties as needed
+        ];
     }
 }

@@ -117,18 +117,21 @@ class ArtistController extends AbstractController
             'message' => "Votre compte artiste a été créé avec succès. Bienvenue dans notre communauté d'artistes ! ",
             'artist_id' => $artist->getId(),
         ]);
-    }
-    #[Route('/artist', name: 'get_artist', methods: ['GET'])]
-    public function getArtists(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
+  }
+    #[Route('/artists/{currentPage}', name: 'get_artist', methods: ['GET'])]
+    public function getArtists(int $currentPage = 1, Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         // Retrieve the current page number from the query parameters (default to 1 if not provided)
-        $currentPage = $request->query->getInt('currentPage', 1);
+        $user = $this->tokenUtils->checkToken($request);
+        if($user === false){
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+        }
 
         // Ensure currentPage is at least 1
         $currentPage = max(1, $currentPage);
 
         // Define the number of artists per page
-        $pageSize = 5;
+        $pageSize = 1;
 
         // Calculate the offset based on the current page
         $offset = ($currentPage - 1) * $pageSize;
