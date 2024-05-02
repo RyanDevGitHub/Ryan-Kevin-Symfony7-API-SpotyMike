@@ -29,17 +29,17 @@ class ArtistController extends AbstractController
         $this->imageUtils = $imageUtils;
     }
 
-    #[Route('/artists', name: 'create_artist', methods: ['POST'])]
+    #[Route('/artist', name: 'create_artist', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         // Check if a user is authenticated
         $user = $this->tokenUtils->checkToken($request);
         if ($user === false) {
-            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null), 401);
         }
 
         // Parse JSON request body
-        $requestData = json_decode($request->getContent(), true);
+        $requestData = $request->request->all();
 
         // Check if all required fields are present
         $requiredFields = ['fullname', 'label']; // Ensure 'avatar' field is provided
@@ -47,23 +47,31 @@ class ArtistController extends AbstractController
             if (!isset($requestData[$field])) {
                 return $this->json([
                     'error' => true,
-                    'message' => "Les champs 'fullname', 'label' et 'avatar' sont obligatoires.",
-                ]);
+                    'message' => "Les champs fullname et le label et  sont obligatoires.",
+                ], 400);
             }
         };
+        // date verify
+        $date = $user->getDateBirth();
 
-        // Validate the avatar field
-        if(isset($requestData['avatar'])){
-            $avatarBase64 = $requestData['avatar'];
-            $avatarData = base64_decode($avatarBase64);
-        // Check if the decoding was successful
-            if ($avatarData === false || !$this->imageUtils-> isValidImage($avatarData)) {
-                return $this->json([
-                    'error' => true,
-                    'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide.",
-                ]);
-            } 
+        // Formater la date en une chaîne au format 'Y-m-d H:i:s'
+        $formattedDate = $date->format('Y-m-d H:i:s');
+
+        if (!$this->userUtils->isValidAge($formattedDate, 16)) {
+            return $this->json([
+                'error' => (true),
+                'message' => "vous devez avoir au moins 16 ans pour etre artiste.",
+            ],403);
         }
+    
+        // Validate the avatar field
+        $coverBase64 = $requestData['avatar'];
+        $coverData = base64_decode($coverBase64);
+        // Check if the decoding was successful
+            if ($coverData === false || !$this->imageUtils-> isValidImage($coverData)) {
+                return $this->json($this->imageUtils->sendImageError(), 422);
+            } 
+
         else{
             $avatarBase64 = '';
         }
@@ -81,6 +89,8 @@ class ArtistController extends AbstractController
             ->setLabel($requestData['label'])
             ->setAvatar($avatarBase64) // Store
             ->setCreatedAt(new \DateTimeImmutable())
+            ->setDateBegin(new \DateTimeImmutable())
+            ->setDateEnd(new \DateTimeImmutable())
             ->setUserIdUser($userEntity);
 
         // Set optional description field if provided
@@ -96,7 +106,7 @@ class ArtistController extends AbstractController
         return $this->json([
             'success' => true,
             'message' => "Votre compte artiste a été créé avec succès. Bienvenue dans notre communauté d'artistes ! ",
-            'artist' => $artist->getId(),
+            'artist_id' => $artist->getId(),
         ]);
     }
     #[Route('/artist', name: 'get_artist', methods: ['GET'])]

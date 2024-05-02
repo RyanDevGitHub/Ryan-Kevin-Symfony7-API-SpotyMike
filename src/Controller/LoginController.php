@@ -35,6 +35,7 @@ class LoginController extends AbstractController
     public function create(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
         $user = new User();
+        $data = $request->request->all();
         if (empty($request->get('firstname'))) {
             return $this->json([
                 'error' => (true),
@@ -86,7 +87,7 @@ class LoginController extends AbstractController
             ],400);
         }
     
-        if (!$this->userUtils->isValidAge($data['dateBirth'])) {
+        if (!$this->userUtils->isValidAge($data['dateBirth'] , 12)) {
             return $this->json([
                 'error' => (true),
                 'message' => "L'utilisateur doit avoir au moins 12 ans.",
