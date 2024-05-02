@@ -63,7 +63,14 @@ class ArtistController extends AbstractController
                 'message' => "vous devez avoir au moins 16 ans pour etre artiste.",
             ],403);
         }
-    
+        dd($requestData['fullname']);
+        $existingArtist = $entityManager->getRepository(Artist::class)->findOneBy(['fullname' => $requestData['fullname']]);
+        if($exisitingArtist){
+            return $this->json([
+                'error' => (true),
+                'message' => "ce nom d'artiste est deja pris. Velliez en choisir un autre.",
+            ],403);
+        }
         // Validate the avatar field
         $coverBase64 = $requestData['avatar'];
         $coverData = base64_decode($coverBase64);
@@ -84,6 +91,7 @@ class ArtistController extends AbstractController
         $userEntity = $userRepository->findOneBy(['email' => $email]);
 
         // Create a new Artist entity
+        dd('ici');
         $artist = new Artist();
         $artist->setFullname($requestData['fullname'])
             ->setLabel($requestData['label'])
