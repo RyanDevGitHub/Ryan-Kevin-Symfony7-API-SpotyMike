@@ -17,13 +17,13 @@ class Artist
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity:"App\Entity\User", inversedBy:"artist")]
-    #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id", nullable:false)]
+    #[ORM\OneToOne(targetEntity: "App\Entity\User", inversedBy: "artist")]
+    #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id", nullable: false)]
     private  $User_idUser;
 
     #[ORM\Column(length: 90)]
     private ?string $fullname = null;
-    
+
     #[ORM\Column(length: 90)]
     private ?string $label = null;
 
@@ -37,10 +37,10 @@ class Artist
     #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_User_idUser')]
     private Collection $albums;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $date_begin = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeInterface $date_end = null;
 
     #[ORM\Column(nullable: true)]
@@ -50,7 +50,7 @@ class Artist
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
@@ -202,13 +202,13 @@ class Artist
     {
         return $this->User_idUser ? $this->User_idUser->getLastname() : null;
     }
-  
+
     public function getUserDateOfBirth(): ?\DateTimeInterface
     {
         return $this->User_idUser ? $this->User_idUser->getDateOfBirth() : null;
     }
 
-  
+
     public function getUserSex(): ?string
     {
         return $this->User_idUser ? $this->User_idUser->getSex() : null;
@@ -218,16 +218,16 @@ class Artist
     {
         return [
             "fullname" => $this->getFullname() ?: "",
-            "firstname" => $this->getFirstname()?: "",
-            "lastname" => $this->getLastname()?: "",
+            "firstname" => $this->getFirstname() ?: "",
+            "lastname" => $this->getLastname() ?: "",
             "label" => $this->getLabel() ?: "",
             "description" => $this->getDescription() ?: "",
-            "date_begin" => $this->getDateBegin()?: "",
-            "date_end" => $this->getDateEnd()?: "",
-            "active" => $this->getActive()?: "",
-            "created_At" => $this->getCreatedAt()?: "",
+            "date_begin" => $this->getDateBegin() ?: "",
+            "date_end" => $this->getDateEnd() ?: "",
+            "active" => $this->getActive() ?: "",
+            "created_At" => $this->getCreatedAt() ?: "",
             "albums" => $this->getAlbums() ?: "",
-            "songs" => $this->getSongs()?: "",
+            "songs" => $this->getSongs() ?: "",
         ];
     }
 
@@ -266,6 +266,4 @@ class Artist
 
         return $this;
     }
-
-
 }
