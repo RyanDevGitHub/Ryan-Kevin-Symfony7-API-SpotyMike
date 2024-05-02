@@ -35,7 +35,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $updateAt = null;
 
     #[ORM\OneToOne(mappedBy: 'User_idUser', cascade: ['persist', 'remove'])]
@@ -47,7 +47,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $dateBirth = null;
 
     #[ORM\Column(nullable: true)]
@@ -187,11 +187,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $dateOfBirth = $this->getDateBirth();
         $dateBirth = $dateOfBirth->format("d-m-Y");
         $telValue = $this->getTel();
-        
-        $sexe  = $this->getSexe() !== null ? $this->getSexe(): 'Homme';
-        if($sexe == 0){
+
+        $sexe  = $this->getSexe() !== null ? $this->getSexe() : 'Homme';
+        if ($sexe == 0) {
             $sexe = 'Femme';
-        }else{
+        } else {
             $sexe = 'Homme';
         }
         return [
@@ -211,13 +211,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $dateOfBirth = $this->getDateBirth();
         $dateBirth = $dateOfBirth->format("d-m-Y");
         $telValue = $this->getTel();
-        $artist = $this->getArtist() !==  null ? $this->getArtist() : new Artist() ;
-        
-        
-        $sexe  = $this->getSexe() !== null ? $this->getSexe(): 'Homme';
-        if($sexe == 0){
+        $artist = $this->getArtist() !==  null ? $this->getArtist() : new Artist();
+
+
+        $sexe  = $this->getSexe() !== null ? $this->getSexe() : 'Homme';
+        if ($sexe == 0) {
             $sexe = 'Femme';
-        }else{
+        } else {
             $sexe = 'Homme';
         }
         return [

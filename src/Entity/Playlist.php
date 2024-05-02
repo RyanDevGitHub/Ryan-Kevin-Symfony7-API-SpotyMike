@@ -29,14 +29,15 @@ class Playlist
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $updateAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'Playlist_idPlaylist')]
     private ?PlaylistHasSong $playlistHasSong = null;
 
     public function __construct()
-    {}
+    {
+    }
 
     public function getId(): ?int
     {

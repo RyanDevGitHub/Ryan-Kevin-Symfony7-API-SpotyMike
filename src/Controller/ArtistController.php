@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Artist;
@@ -19,10 +20,10 @@ use Symfony\Component\Serializer\SerializerInterface;
 class ArtistController extends AbstractController
 {
     private UserUtils $userUtils;
-    private TokenVerifierService $tokenUtils ;
+    private TokenVerifierService $tokenUtils;
     private ImageUtils $imageUtils;
 
-    public function __construct(UserUtils $userUtils, TokenVerifierService $tokenUtils, ImageUtils $imageUtils )
+    public function __construct(UserUtils $userUtils, TokenVerifierService $tokenUtils, ImageUtils $imageUtils)
     {
         $this->userUtils = $userUtils;
         $this->tokenUtils = $tokenUtils;
@@ -33,6 +34,7 @@ class ArtistController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): JsonResponse
     {
         // Check if a user is authenticated
+
         $user = $this->tokenUtils->checkToken($request);
         if ($user === false) {
             return $this->json($this->tokenUtils->sendJsonErrorToken(null), 401);
@@ -47,7 +49,7 @@ class ArtistController extends AbstractController
             if (!isset($requestData[$field])) {
                 return $this->json([
                     'error' => true,
-                    'message' => "Les champs fullname et le label et  sont obligatoires.",
+                    'message' => "L'id du label et le fullname sont obligatoires.",
                 ], 400);
             }
         };
@@ -60,18 +62,19 @@ class ArtistController extends AbstractController
         if (!$this->userUtils->isValidAge($formattedDate, 16)) {
             return $this->json([
                 'error' => (true),
-                'message' => "vous devez avoir au moins 16 ans pour etre artiste.",
-            ],403);
+                'message' => "vous devez avoir au moins 16 ans pour être artiste.",
+            ], 403);
         }
-        dd($requestData['fullname']);
+
         $existingArtist = $entityManager->getRepository(Artist::class)->findOneBy(['fullname' => $requestData['fullname']]);
-        if($exisitingArtist){
+        if ($existingArtist) {
             return $this->json([
                 'error' => (true),
-                'message' => "ce nom d'artiste est deja pris. Velliez en choisir un autre.",
-            ],403);
+                'message' => "Ce nom d'artiste est déjà pris. Veuillez en choisir un autre.",
+            ], 409);
         }
         // Validate the avatar field
+<<<<<<< HEAD
         if(isset())
         $coverBase64 = $requestData['avatar'];
         $coverData = base64_decode($coverBase64);
@@ -79,11 +82,19 @@ class ArtistController extends AbstractController
             if ($coverData === false || !$this->imageUtils-> isValidImage($coverData)) {
                 return $this->json($this->imageUtils->sendImageError(), 422);
             } 
+=======
+        if (isset($requestData['avatar'])) {
+            $coverBase64 = $requestData['avatar'];
+            $coverData = base64_decode($coverBase64);
+>>>>>>> 25808f9c6ea0943c30c57b61ee835aef942f5af9
 
-        else{
+            // Check if the decoding was successful
+            if ($coverData === false || !$this->imageUtils->isValidImage($coverData)) {
+                return $this->json($this->imageUtils->sendImageError(), 422);
+            }
+        } else {
             $avatarBase64 = '';
-        }
-    ;
+        };
 
 
         // Get the user entity based on the authenticated user
@@ -92,7 +103,6 @@ class ArtistController extends AbstractController
         $userEntity = $userRepository->findOneBy(['email' => $email]);
 
         // Create a new Artist entity
-        dd('ici');
         $artist = new Artist();
         $artist->setFullname($requestData['fullname'])
             ->setLabel($requestData['label'])
@@ -117,18 +127,21 @@ class ArtistController extends AbstractController
             'message' => "Votre compte artiste a été créé avec succès. Bienvenue dans notre communauté d'artistes ! ",
             'artist_id' => $artist->getId(),
         ]);
-    }
-    #[Route('/artist', name: 'get_artist', methods: ['GET'])]
-    public function getArtists(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
+  }
+    #[Route('/artists/{currentPage}', name: 'get_artist', methods: ['GET'])]
+    public function getArtists(int $currentPage = 1, Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         // Retrieve the current page number from the query parameters (default to 1 if not provided)
-        $currentPage = $request->query->getInt('currentPage', 1);
+        $user = $this->tokenUtils->checkToken($request);
+        if($user === false){
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+        }
 
         // Ensure currentPage is at least 1
         $currentPage = max(1, $currentPage);
 
         // Define the number of artists per page
-        $pageSize = 5;
+        $pageSize = 1;
 
         // Calculate the offset based on the current page
         $offset = ($currentPage - 1) * $pageSize;
@@ -165,9 +178,9 @@ class ArtistController extends AbstractController
     #[Route('/artist/{fullname}', name: 'get_artist_by_fullname', methods: ['GET'])]
     public function getArtistByFullName(string $fullname, EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
-    
+
         $user = $this->tokenUtils->checkToken($request);
-        if($user === false){
+        if ($user === false) {
             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
         }
         // Find the artist by full name
@@ -190,7 +203,7 @@ class ArtistController extends AbstractController
     public function updateArtist(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $user = $this->tokenUtils->checkToken($request);
-        if($user === false){
+        if ($user === false) {
             return $this->json($this->tokenUtils->sendJsonErrorToken(null));
         }
         // Retrieve artist associated with the authenticated user
@@ -225,55 +238,55 @@ class ArtistController extends AbstractController
         if (isset($requestData['avatar'])) {
             $avatarBase64 = $requestData['avatar'];
             $avatarData = base64_decode($avatarBase64);
-        // Check if the decoding was successful
-            if ($avatarData === false || !$this->imageUtils-> isValidImage($avatarData)) {
+            // Check if the decoding was successful
+            if ($avatarData === false || !$this->imageUtils->isValidImage($avatarData)) {
                 return $this->json([
                     'error' => true,
                     'message' => "Le contenu fourni n'est pas une image JPEG ou PNG valide.",
                 ]);
             }
-            $artist->setAvatar($avatarBase64); 
+            $artist->setAvatar($avatarBase64);
         }
         $entityManager->persist($artist);
         $entityManager->flush();
-            // Handle updating avatar if needed
-            // Validate and update avatar logic here if required
+        // Handle updating avatar if needed
+        // Validate and update avatar logic here if required
         return $this->json([
-            'error'=> false,
+            'error' => false,
             'message' => "les informations de l'artiste ont ete mise jour avec succes."
         ]);
     }
     #[Route('/artist', name: 'delete_artist', methods: ['DELETE'])]
-public function deleteArtist(Request $request, EntityManagerInterface $entityManager): JsonResponse
-{
-    $user = $this->tokenUtils->checkToken($request);
-    if ($user === false) {
-        return $this->json($this->tokenUtils->sendJsonErrorToken(null));
-    }
+    public function deleteArtist(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->tokenUtils->checkToken($request);
+        if ($user === false) {
+            return $this->json($this->tokenUtils->sendJsonErrorToken(null));
+        }
 
-    // Retrieve artist associated with the authenticated user
-    $artist = $user->getArtist();
-    if (!$artist) {
-        return $this->json([
-            'error' => true,
-            'message' => 'Compte artiste non trouvé. Aucune suppression n\'est nécessaire.'
-        ], 404);
-    }
+        // Retrieve artist associated with the authenticated user
+        $artist = $user->getArtist();
+        if (!$artist) {
+            return $this->json([
+                'error' => true,
+                'message' => 'Compte artiste non trouvé. Aucune suppression n\'est nécessaire.'
+            ], 404);
+        }
 
-    try {
-        // Remove the artist entity
-        $entityManager->remove($artist);
-        $entityManager->flush();
+        try {
+            // Remove the artist entity
+            $entityManager->remove($artist);
+            $entityManager->flush();
 
-        return $this->json([
-            'error' => false,
-            'message' => 'Compte artiste supprimé avec succès.'
-        ]);
-    } catch (\Exception $e) {
-        return $this->json([
-            'error' => true,
-            'message' => 'Une erreur est survenue lors de la suppression du compte artiste.'
-        ], 500);
+            return $this->json([
+                'error' => false,
+                'message' => 'Compte artiste supprimé avec succès.'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => true,
+                'message' => 'Une erreur est survenue lors de la suppression du compte artiste.'
+            ], 500);
+        }
     }
-}
 }
