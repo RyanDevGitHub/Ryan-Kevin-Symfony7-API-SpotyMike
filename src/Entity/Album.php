@@ -36,7 +36,7 @@ class Album
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
-    
+
     #[ORM\ManyToOne(inversedBy: 'albums')]
     private ?Artist $artist_User_idUser = null;
 
@@ -54,12 +54,12 @@ class Album
         return $this->id;
     }
 
-    public function getVisibility(): ?int 
+    public function getVisibility(): ?int
     {
         return $this->visibility;
     }
 
-    public function setVisibility(int $visibility): static 
+    public function setVisibility(int $visibility): static
     {
         $this->visibility = $visibility;
     }
@@ -178,8 +178,6 @@ class Album
             'nom' => $this->nom,
             'categ' => $this->categ,
             'cover' => $this->cover,
-            'featuring' => $this->featuring ? $this->featuring->minSerializer() : null,
-            'artist' => $this->artist ? $this->artist->miniSerializer() : null,
             // Add other properties as needed
         ];
     }
