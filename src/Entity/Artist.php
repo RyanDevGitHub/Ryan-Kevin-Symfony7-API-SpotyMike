@@ -69,9 +69,10 @@ class Artist
         return $this->User_idUser;
     }
     // Setter for date_begin
-    public function setDateBegin(?\DateTimeInterface $date_begin): void
+    public function setDateBegin(?\DateTimeInterface $date_begin): static
     {
         $this->date_begin = $date_begin;
+        return $this;
     }
     // Getter for date_begin
     public function getDateBegin(): ?\DateTimeInterface
@@ -83,6 +84,7 @@ class Artist
     public function setDateEnd(?\DateTimeInterface $date_end): static
     {
         $this->date_end = $date_end;
+        return $this;
     }
 
     // Getter for date_end

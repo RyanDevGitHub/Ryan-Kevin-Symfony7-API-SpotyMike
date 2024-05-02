@@ -95,16 +95,15 @@ class ArtistController extends AbstractController
         $email = $user->getEmail();
         $userRepository = $entityManager->getRepository(User::class);
         $userEntity = $userRepository->findOneBy(['email' => $email]);
-
         // Create a new Artist entity
         $artist = new Artist();
         $artist->setFullname($requestData['fullname'])
             ->setLabel($requestData['label'])
             ->setAvatar($coverBase64) // Store
             ->setCreatedAt(new \DateTimeImmutable())
-            ->setDateBegin(new \DateTimeImmutable())
-            ->setDateEnd(new \DateTimeImmutable())
-            ->setUserIdUser($userEntity);
+            ->setDateBegin(new \DateTimeImmutable());
+        $artist->setDateEnd(new \DateTimeImmutable());
+        $artist->setUserIdUser($userEntity);
 
         // Set optional description field if provided
         if (isset($requestData['description'])) {
